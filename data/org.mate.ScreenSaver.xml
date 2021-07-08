@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN"
+        "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
+<node xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
+    <interface name="org.mate.ScreenSaver">
+        <method name="Lock"></method>
+        <method name="Unlock"></method>
+        <method name="Cycle"></method>
+        <method name="SimulateUserActivity"></method>
+        <method name="Inhibit">
+            <arg name="application_name" direction="in" type="s" >
+                <description></description>
+            </arg>
+            <arg name="reason" direction="in" type="s" >
+                <description></description>
+            </arg>
+            <arg name="cookie" direction="out" type="u" >
+                <description></description>
+            </arg>
+        </method>
+        <method name="UnInhibit">
+            <arg name="cookie" direction="in" type="u">
+                <description></description>
+            </arg>
+        </method>
+        <method name="GetInhibitors">
+            <arg name="list" direction="out" type="as">
+                <description></description>
+            </arg>
+        </method>
+        <method name="Throttle">
+            <arg name="application_name" direction="in" type="s">
+                <description></description>
+            </arg>
+            <arg name="reason" direction="in" type="s">
+                <description></description>
+            </arg>
+            <arg name="cookie" direction="out" type="u">
+                <description></description>
+            </arg>
+        </method>
+        <method name="UnThrottle">
+            <arg name="cookie" direction="in" type="u">
+                <description></description>
+            </arg>
+        </method>
+        <method name="GetActive">
+            <arg name="value" direction="out" type="b">
+                <description></description>
+            </arg>
+        </method>
+        <method name="GetActiveTime">
+            <arg name="seconds" direction="out" type="u">
+                <description></description>
+            </arg>
+        </method>
+        <method name="SetActive">
+            <arg name="value" direction="in" type="b">
+                <description></description>
+            </arg>
+        </method>
+        <method name="ShowMessage">
+            <arg name="summary" direction="in" type="s">
+                <description></description>
+            </arg>
+            <arg name="body" direction="in" type="s">
+                <description></description>
+            </arg>
+            <arg name="icon" direction="in" type="s">
+                <description></description>
+            </arg>
+        </method>
+        <signal name="ActiveChanged">
+            <arg name="value" direction="out" type="b">
+                <description></description>
+            </arg>
+        </signal>
+    </interface>
+</node>

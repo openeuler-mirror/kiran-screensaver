@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+    <enum id="com.kylinsec.kiran.screensaver.screensaver-mode">
+        <value value="0" nick="build-in"/>
+        <value value="1" nick="embed"/>
+    </enum>
+
+    <schema id="com.kylinsec.kiran.screensaver" path="/com/kylinsec/kiran/screensaver/">
+        <key name="idle-activation-screensaver" type="b">
+            <default>true</default>
+            <description></description>
+        </key>
+
+        <key name="screensaver-activation-lock" type="b">
+            <default>true</default>
+            <description></description>
+        </key>
+
+        <key name="can-logout" type="b">
+            <default>true</default>
+            <description></description>
+        </key>
+
+        <key name="can-lock" type="b">
+            <default>true</default>
+            <description></description>
+        </key>
+
+        <key name="can-user-switch" type="b">
+            <default>true</default>
+            <description></description>
+        </key>
+
+        <key name="screensaver-mode" enum="com.kylinsec.kiran.screensaver.screensaver-mode">
+            <default>'build-in'</default>
+            <description></description>
+        </key>
+
+        <key name="screensaver-theme" type="s">
+            <default>""</default>
+            <description></description>
+        </key>
+    </schema>
+</schemalist>
