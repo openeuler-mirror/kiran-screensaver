@@ -28,6 +28,8 @@ class KSGrab;
 class KSListener;
 class KSMateAdaptor;
 class KSKiranAdaptor;
+class KSScreenManager;
+class KSIdleWatcher;
 class KSManager: public QObject
 {
     Q_OBJECT
@@ -43,16 +45,18 @@ public:
 private slots:
     void handleIdleChanged(bool idle,bool &handled);
     void handleIdleNoticeChanged(bool isEffect,bool &handled);
-    void handleListenerActiveChaneged(bool active,bool &handled);
+    void handleListenerActiveChanged(bool active,bool &handled);
     void handleListenerLock();
 
 private:
     KSPrefs* m_prefs = nullptr;
     KSFade* m_fade = nullptr;
     KSGrab* m_grab = nullptr;
+    KSIdleWatcher* m_idleWatcher = nullptr;
     KSListener* m_listener = nullptr;
     KSMateAdaptor* m_mateAdaptor = nullptr;
     KSKiranAdaptor* m_kiranAdaptor = nullptr;
+    KSScreenManager* m_screenManager = nullptr;
 };
 
 #endif  //KIRAN_SCREENSAVER_SRC_KS_MANAGER_H_

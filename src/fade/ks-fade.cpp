@@ -9,7 +9,10 @@
 #include <qt5-log-i.h>
 #include <QTimerEvent>
 
+// 淡出时间 ms
 #define FADE_TIMEOUT 1000
+
+// 淡出动画的帧数
 #define FADE_STEP_REP_SECOND 60
 
 KSFade::KSFade(QObject *parent)
@@ -75,7 +78,7 @@ bool KSFade::startAsync()
     ///每一步改变的alpha值
     m_fadeStepAlpha = 1.0/(qreal)num_steps;
 
-    //开始定时器
+    /// 开始定时器
     m_fadeTimerID = startTimer(msecs_per_step);
 
     return true;

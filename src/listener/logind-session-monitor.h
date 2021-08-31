@@ -7,6 +7,7 @@
 
 #include <QObject>
 
+// 监听logind发出的Lock、UnLock信号的封装
 class LogindSessionMonitor : public QObject
 {
     Q_OBJECT

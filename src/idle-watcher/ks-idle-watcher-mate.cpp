@@ -4,16 +4,24 @@
 
 #include "ks-idle-watcher-mate.h"
 #include <qt5-log-i.h>
+#include <QMap>
 
-using namespace org::gnome::SessionManager;
-
-///该枚举定义在mate-session-manager-1.22.1 gsm-presence.h中，由于未提供头文件，故将其拷贝定义在此处
+///NOTE:
+/// 该枚举定义在mate-session-manager-1.22.1 gsm-presence.h中
+/// 由于未提供开发头文件，故将其拷贝定义在此处
 enum PresenceStatus
 {
     PRESENCE_STATUS_AVAILABLE = 0,
     PRESENCE_STATUS_INVISIBLE,
     PRESENCE_STATUS_BUSY,
     PRESENCE_STATUS_IDLE
+};
+/// 用于打印空闲状态枚举值
+static const QMap<PresenceStatus,QString> PresenceStatusDescMap = {
+    {PRESENCE_STATUS_AVAILABLE,"available"},
+    {PRESENCE_STATUS_INVISIBLE,"invisible"},
+    {PRESENCE_STATUS_BUSY,"busy"},
+    {PRESENCE_STATUS_IDLE,"idle"}
 };
 
 KSIdleWatcherMate::KSIdleWatcherMate(QObject *parent)
@@ -27,6 +35,7 @@ KSIdleWatcherMate::~KSIdleWatcherMate()
 
 bool KSIdleWatcherMate::init()
 {
+    // 连接到session bus
     QDBusConnection sessionBus = QDBusConnection::sessionBus();
     if (!sessionBus.isConnected())
     {
@@ -34,15 +43,18 @@ bool KSIdleWatcherMate::init()
         return false;
     }
 
+
+
+    // 连接到SessionManager的DBus服务，处理会话状态改变
     delete m_presenceInterface;
     m_presenceInterface = nullptr;
-    m_presenceInterface = new Presence("org.gnome.SessionManager", "/org/gnome/SessionManager/Presence", sessionBus, this);
-    if (!connect(m_presenceInterface, &Presence::StatusChanged, this, &KSIdleWatcherMate::slotPresenceStatusChanged))
+    m_presenceInterface = new GSMPresenceProxy("org.gnome.SessionManager", "/org/gnome/SessionManager/Presence", sessionBus, this);
+    if (!connect(m_presenceInterface, &GSMPresenceProxy::StatusChanged, this, &KSIdleWatcherMate::slotPresenceStatusChanged))
     {
         KLOG_ERROR() << "can't connect status changed signal!";
         return false;
     }
-    if (!connect(m_presenceInterface, &Presence::StatusTextChanged, this, &KSIdleWatcherMate::slotPresenceStatusTextChanged))
+    if (!connect(m_presenceInterface, &GSMPresenceProxy::StatusTextChanged, this, &KSIdleWatcherMate::slotPresenceStatusTextChanged))
     {
         KLOG_ERROR() << "can't connect status text changed signal!";
         return false;
@@ -51,24 +63,24 @@ bool KSIdleWatcherMate::init()
     return true;
 }
 
-bool KSIdleWatcherMate::getActive()
+bool KSIdleWatcherMate::getIdleDetectionActive()
 {
-    return m_active;
+    return m_idleDetectionActive;
 }
 
-bool KSIdleWatcherMate::setActive(bool active)
+bool KSIdleWatcherMate::setIdleDetectionActive(bool idleDetectionActive)
 {
-    KLOG_DEBUG() << "turning idle watcher: " << (active?"ON":"OFF");
+    KLOG_DEBUG() << "turning idle watcher: " << (idleDetectionActive ?"ON":"OFF");
 
-    if( active == m_active )
+    if(idleDetectionActive == m_idleDetectionActive)
     {
-        KLOG_DEBUG() << "idle watcher is already" << (active?"active":"inactive");
+        KLOG_DEBUG() << "idle watcher is already" << (idleDetectionActive ?"idleDetectionActive":"inactive");
         return false;
     }
 
     if( !m_enabled )
     {
-        KLOG_DEBUG() << "idle watcher is disabled,cannot active";
+        KLOG_DEBUG() << "idle watcher is disabled,cannot idleDetectionActive";
         return false;
     }
 
@@ -78,7 +90,7 @@ bool KSIdleWatcherMate::setActive(bool active)
     {
         killTimer(m_idleTimerID);
     }
-    m_active = active;
+    m_idleDetectionActive = idleDetectionActive;
     return true;
 }
 
@@ -95,19 +107,20 @@ bool KSIdleWatcherMate::setEnabled(bool enabled)
         return false;
     }
 
-    bool isActive = getActive();
+    bool isActive = getIdleDetectionActive();
     if( !enabled && isActive )
     {
-        setActive(false);
+        setIdleDetectionActive(false);
     }
-    m_enabled = enabled;
 
+    m_enabled = enabled;
     return true;
 }
 
 void KSIdleWatcherMate::slotPresenceStatusChanged(uint status)
 {
-    KLOG_DEBUG() << "presence status changed: " << status;
+    auto iter  = PresenceStatusDescMap.find((PresenceStatus)status);
+    KLOG_DEBUG() << "presence status changed: " << (iter==PresenceStatusDescMap.end()?"null":iter.value());
     setStatus(status);
 }
 
@@ -121,7 +134,7 @@ void KSIdleWatcherMate::setStatus(uint status)
 {
     bool isIdle = false;
 
-    if (!m_active)
+    if (!m_idleDetectionActive)
     {
         KLOG_DEBUG() << "not active,ignoring status changes";
         return;
@@ -138,13 +151,16 @@ void KSIdleWatcherMate::setStatus(uint status)
 
     if(m_idleTimerID)
     {
+        // 若已存在空闲定时器，则销毁
         killTimer(m_idleTimerID);
         m_idleTimerID = 0;
     }
 
     if (isIdle)
     {
+        // 设置空闲预告
         setIdleNotice(true);
+        // 开启空闲定时器
         m_idleTimerID = startTimer(m_delayIdleTimeout);
     }
     else

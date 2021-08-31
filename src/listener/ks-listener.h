@@ -9,9 +9,9 @@
 
 #include <QObject>
 #include <QDBusContext>
+#include <QDebug>
 
 class LogindSessionMonitor;
-
 /**
  * 对外提供DBus接口
  * 对内提供接口整合设置屏保状态和空闲状态
@@ -20,6 +20,15 @@ class KSListener: public QObject, protected QDBusContext
 {
     Q_OBJECT
 public:
+    struct InhibitedEntry{
+        QString application;
+        QString reason;
+        QString connection;
+        quint32 cookie;
+        quint32 foreign_cookie;
+        quint64 since; // 时间戳
+        friend QDebug operator<<(QDebug debug, const InhibitedEntry &entry);
+    };
     explicit KSListener(QObject* parent = nullptr);
     ~KSListener() override;
 
@@ -44,49 +53,68 @@ public:
     bool setActiveStatus(bool active);
 
 public slots:
-    /// 以下方法提供方法只为了兼容mate桌面，并不作任何实际有效的操作
+    // 以下方法提供方法只为了兼容mate桌面，并不作任何实际有效的操作
     void Cycle();
     uint Throttle(const QString &application_name, const QString &reason);
     void UnThrottle(uint cookie);
     void ShowMessage(const QString &summary, const QString &body, const QString &icon);
 
-    /// 设置屏保激活激活状态
+    // 设置激活状态
     void SetActive(bool value);
-    /// 获取屏幕保护程序状态
+    // 获取激活状态
     bool GetActive();
-    /// 获取屏幕保护程序启动时间
+    // 获取激活时间
     uint GetActiveTime();
 
-    /// 获取抑制器cookie列表
+    // 获取抑制器cookie列表
     QStringList GetInhibitors();
-    /// 添加一个抑制器
+    // 添加一个抑制器
     uint Inhibit(const QString &application_name, const QString &reason);
-    /// 删除一个抑制器
+    // 删除一个抑制器
     void UnInhibit(uint cookie);
 
-    /// 请求锁定屏幕
+    // 请求锁定屏幕
     void Lock();
-    /// 请求解锁屏幕
+    // 请求解锁屏幕
     void Unlock();
 
-    /// 模拟用户活动
+    // 模拟用户活动
     void SimulateUserActivity();
 
 signals:
-    /// DBus信号 - 屏幕保护程序激活状态
+    // DBus信号 - 屏幕保护程序激活状态
     void ActiveChanged(bool value);
 
-    /// 内部处理信号 - 处理激活状态变更信号
+    // 内部处理信号 - 处理激活状态变更信号
     void sigActiveChanged(bool active,bool &handled);
-    /// 内部处理信号 - 激活锁屏
+
+    // 内部处理信号 - 激活锁屏
     void sigLock();
 
+    // 内部处理信号 - 模拟用户活动
+    void sigSimulateUserActivity();
+
 private:
-    uint generateCookie();
+    // 添加抑制器，改动同步至会话管理中
+    void addInhibitEntry(InhibitedEntry &entry);
+    // 删除抑制器，改动同步至会话管理中
+    void removeInhibitEntry(quint64 cookie);
+
+    // 添加空闲抑制器到会话管理中
+    void addSessionInhibit(InhibitedEntry& entry);
+    // 删除会话管理中的空闲抑制器
+    void removeSessionInhibit(const InhibitedEntry& entry);
+
+    quint64 generateCookie();
+
 
 private slots:
+    // dbus服务logind发出Lock信号的槽函数
     void handleLogindSessionLock();
+    // dbus服务logind发出UnLock信号的槽函数
     void handleLogindSessionUnlock();
+
+    void handleDBusNameOwnerChanged(const QString& name,const QString& oldOwner,const QString& newOwner);
 
 private:
     bool m_isActive = false;
@@ -94,6 +122,7 @@ private:
     uint m_activeStart = 0;
     uint m_sessionIdleStart = 0;
     LogindSessionMonitor* m_sessionMonitor = nullptr;
+    QMap<quint64,InhibitedEntry> m_inhibitedEntries;
 };
 
 #endif  //KIRAN_SCREENSAVER_SRC_KS_LISTENER_H_

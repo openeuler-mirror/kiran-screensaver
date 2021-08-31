@@ -13,7 +13,6 @@ class KSFadeGamma : public KSFadeInterface
 public:
     KSFadeGamma();
     ~KSFadeGamma();
-
 public:
     static bool checkForSupport();
     bool setup() override;

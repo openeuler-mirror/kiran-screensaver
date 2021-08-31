@@ -6,12 +6,7 @@
     </enum>
 
     <schema id="com.kylinsec.kiran.screensaver" path="/com/kylinsec/kiran/screensaver/">
-        <key name="idle-activation-screensaver" type="b">
-            <default>true</default>
-            <description></description>
-        </key>
-
-        <key name="screensaver-activation-lock" type="b">
+        <key name="idle-activation-lock" type="b">
             <default>true</default>
             <description></description>
         </key>
@@ -21,23 +16,8 @@
             <description></description>
         </key>
 
-        <key name="can-lock" type="b">
-            <default>true</default>
-            <description></description>
-        </key>
-
         <key name="can-user-switch" type="b">
             <default>true</default>
-            <description></description>
-        </key>
-
-        <key name="screensaver-mode" enum="com.kylinsec.kiran.screensaver.screensaver-mode">
-            <default>'build-in'</default>
-            <description></description>
-        </key>
-
-        <key name="screensaver-theme" type="s">
-            <default>""</default>
             <description></description>
         </key>
     </schema>

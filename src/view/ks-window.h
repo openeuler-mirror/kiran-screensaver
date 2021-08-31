@@ -1,4 +1,4 @@
- /**
+/**
   * @Copyright (C) 2020 ~ 2021 KylinSec Co., Ltd.
   *
   * Author:     liuxinhao <liuxinhao@kylinos.com.cn>
@@ -16,31 +16,53 @@
   * You should have received a copy of the GNU General Public License
   * along with this program; If not, see <http: //www.gnu.org/licenses/>. 
   */
- 
+
 #ifndef KIRAN_SCREENSAVER_SRC_VIEW_KS_WINDOW_H_
 #define KIRAN_SCREENSAVER_SRC_VIEW_KS_WINDOW_H_
 
 #include <QWidget>
 
-class QProcess;
-class KSWindow: public QWidget
+class KSScreenSaver;
+class QPropertyAnimation;
+class KSWindow : public QWidget
 {
     Q_OBJECT
+    Q_PROPERTY(qreal blurRadius READ blurRadius WRITE setBlurRadius)
 public:
     explicit KSWindow(QScreen* screen = nullptr);
     ~KSWindow() override;
 
-    void setScreen(QScreen* screen);
-    void showScreenSaver(const QString& path);
+    // 背景模糊
+    qreal blurRadius();
+    void setBlurRadius(qreal radius);
 
-private slots:
-    void handleScreenGeometryChanged(const QRect &geometry);
+    void startBlur();
+    void resetBlur();
+
+    // 设置绑定屏幕
+    void setScreen(QScreen* screen);
+
+    // 设置显示背景图
+    void setBackground(const QPixmap& pixmap);
+
+    void setScreenSaverVisible(bool visible);
+    bool getScreenSaverVisible();
+
+private:
+    void handleScreenGeometryChanged(const QRect& geometry);
+
+protected:
+    void resizeEvent(QResizeEvent* event) override;
+    void paintEvent(QPaintEvent* event) override;
+    void enterEvent(QEvent* event) override;
 
 private:
     QScreen* m_screen = nullptr;
-    QProcess* m_process = nullptr;
-    QWindow* m_screensaverWindow = nullptr;
-    QWidget* m_screensaverWidget = nullptr;
+    QPixmap m_background;
+    QPixmap m_scaledBackground;
+    KSScreenSaver* m_screensaver = nullptr;
+    QPropertyAnimation* m_blurAnimation = nullptr;
+    qreal  m_blurRadius = 0;
 };
 
 #endif  //KIRAN_SCREENSAVER_SRC_VIEW_KS_WINDOW_H_

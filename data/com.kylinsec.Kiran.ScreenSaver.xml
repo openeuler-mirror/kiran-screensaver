@@ -14,12 +14,12 @@
             <arg name="reason" direction="in" type="s" >
                 <description></description>
             </arg>
-            <arg name="cookie" direction="out" type="u" >
+            <arg name="foreign_cookie" direction="out" type="u" >
                 <description></description>
             </arg>
         </method>
         <method name="UnInhibit">
-            <arg name="cookie" direction="in" type="u">
+            <arg name="foreign_cookie" direction="in" type="u">
                 <description></description>
             </arg>
         </method>
@@ -35,12 +35,12 @@
             <arg name="reason" direction="in" type="s">
                 <description></description>
             </arg>
-            <arg name="cookie" direction="out" type="u">
+            <arg name="foreign_cookie" direction="out" type="u">
                 <description></description>
             </arg>
         </method>
         <method name="UnThrottle">
-            <arg name="cookie" direction="in" type="u">
+            <arg name="foreign_cookie" direction="in" type="u">
                 <description></description>
             </arg>
         </method>

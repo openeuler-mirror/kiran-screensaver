@@ -32,13 +32,17 @@ private:
     KSGrab();
 
 public:
+    // 释放抓取
     void releaseGrab();
+    // 抓取输入设备至窗口上
     bool grabWindow(WId wid,bool grabPointer=true);
+    // 抓取输入设备至root窗口上
     bool grabRoot(bool grabPointer=true);
+    // 将输入设备抓取至不显示的窗口上
     bool grabOffscreen(bool grabPointer=true);
 
 private:
-    KSInvisibleWindow* m_invisibleWindow;
+    KSInvisibleWindow* m_invisibleWindow = nullptr;
     WId m_grabWID = 0;
 };
 

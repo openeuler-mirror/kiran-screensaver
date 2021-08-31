@@ -9,7 +9,7 @@
 
 #include "ks-idle-watcher.h"
 ///由org.gnome.SessionManager.Presence.xml生成而来
-#include "gnome_session_presence.h"
+#include "gsm_presence_proxy.h"
 
 class KSIdleWatcherMate : public KSIdleWatcher
 {
@@ -21,15 +21,18 @@ public:
 public:
     bool init() override;
 
-    bool getActive() override;
-    bool setActive(bool active) override;
+    bool getIdleDetectionActive() override;
+    bool setIdleDetectionActive(bool idleDetectionActive) override;
 
     bool getEnabled() override;
     bool setEnabled(bool enabled) override;
 
 private slots:
+    // 连接到gnome session manager Presence监听整个桌面的空闲状态
     void slotPresenceStatusChanged(uint status);
+    // 连接到gnome session manager Presence获取状态文本的改变
     void slotPresenceStatusTextChanged(const QString& statusText);
+    // 处理空闲状态的定时器超时,由空闲预告进入空闲的阶段
     void slotHandleIdleDelayTimeout();
 
 private:
@@ -41,7 +44,7 @@ protected:
     void timerEvent(QTimerEvent* event) override;
 
 private:
-    org::gnome::SessionManager::Presence* m_presenceInterface = nullptr;
+    GSMPresenceProxy* m_presenceInterface = nullptr;
 
     ///---设置---
     //是否启用
@@ -51,7 +54,7 @@ private:
 
     ///---状态---
     //激活状态
-    bool m_active = false;
+    bool m_idleDetectionActive = false;
     //空闲状态
     bool m_idle = false;
     //空闲预告标志

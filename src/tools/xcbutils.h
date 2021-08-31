@@ -314,9 +314,9 @@ public:
  * Creates a struct with name @p __NAME__ for the xcb request identified by @p __REQUEST__.
  * The variadic arguments are used to pass as template arguments to the WrapperData.
  *
- * The @p __REQUEST__ is the common prefix of the cookie type, reply type, request function and
+ * The @p __REQUEST__ is the common prefix of the foreign_cookie type, reply type, request function and
  * reply function. E.g. "xcb_get_geometry" is used to create:
- * @li cookie type xcb_get_geometry_cookie_t
+ * @li foreign_cookie type xcb_get_geometry_cookie_t
  * @li reply type xcb_get_geometry_reply_t
  * @li request function pointer xcb_get_geometry_unchecked
  * @li reply function pointer xcb_get_geometry_reply

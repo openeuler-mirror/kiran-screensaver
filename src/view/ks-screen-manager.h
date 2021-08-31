@@ -20,17 +20,58 @@
 #ifndef KIRAN_SCREENSAVER_SRC_SCREEN_MANAGER_KS_SCREEN_MANAGER_H_
 #define KIRAN_SCREENSAVER_SRC_SCREEN_MANAGER_KS_SCREEN_MANAGER_H_
 
+#include <QMap>
 #include <QObject>
+#include <QPixmap>
 
+class KSWindow;
+class QScreen;
+class QGSettings;
+class KSFade;
+class KSScreensaver;
+class KSLockerDemo;
 class KSScreenManager : public QObject
 {
     Q_OBJECT
 public:
-    KSScreenManager(QObject* parent = nullptr);
+    KSScreenManager(KSFade* fade,QObject* parent = nullptr);
     ~KSScreenManager();
 
-private:
+    bool eventFilter(QObject* watched, QEvent* event) override;
 
+public:
+    /// 设置激活状态
+    bool setActive(bool visible);
+    /// 获取激活状态
+    bool getActive();
+
+    void setLockActive(bool lockActive);
+    bool getLockActive();
+    bool requestUnlock();
+
+private:
+    bool activate();
+    void createWindows();
+    void createWindowForScreen(QScreen* screen);
+
+    bool deactivate();
+    void destroyWindows();
+
+private slots:
+    void handleScreenAdded(QScreen* screen);
+    void handleScreenRemoved(QScreen* screen);
+
+private:
+    bool m_active = false;
+    bool m_lockActive = false;
+    bool m_dialogUp = false;
+    KSFade * m_fade = nullptr;
+
+    QPixmap m_background;
+
+    QMap<QScreen* ,KSWindow*> m_windowMap;
+    KSScreensaver* m_screensaver;
+    KSLockerDemo* m_lockerDemo;
 };
 
 #endif  //KIRAN_SCREENSAVER_SRC_SCREEN_MANAGER_KS_SCREEN_MANAGER_H_

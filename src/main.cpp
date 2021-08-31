@@ -5,7 +5,11 @@
 
 int main(int argc, char *argv[])
 {
-    klog_qt5_init("","kylinsec-session","kiran-screensaver","kiran-screensaver");
+    klog_qt5_init("",
+                  "kylinsec-session",
+                  "kiran-screensaver",
+                  "kiran-screensaver");
+
     KiranApplication app(argc, argv);
 
     KSManager manager;
