@@ -32,7 +32,8 @@ class KSScreensaver : public QWidget
     Q_OBJECT
     Q_PROPERTY(bool active READ active WRITE setActive)
 public:
-    explicit KSScreensaver(QWidget *parent = nullptr);
+    explicit KSScreensaver(bool enableAnimation,
+                           QWidget* parent = nullptr);
     ~KSScreensaver() override;
 
     bool active();
@@ -57,6 +58,7 @@ signals:
 private:
     Ui::KSScreensaver *ui;
     bool m_isActive = true;
+    bool m_enableAnimation = false;
     QWidget* m_parentWidget = nullptr;
     QStateMachine* m_stateMachine = nullptr;
     QState* m_activeState = nullptr;

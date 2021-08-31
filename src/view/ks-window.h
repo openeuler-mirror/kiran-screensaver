@@ -27,14 +27,15 @@ class QPropertyAnimation;
 class KSWindow : public QWidget
 {
     Q_OBJECT
-    Q_PROPERTY(qreal blurRadius READ blurRadius WRITE setBlurRadius)
+    Q_PROPERTY(qreal blurOpacity READ blurOpacity WRITE setBlurOpacity)
 public:
-    explicit KSWindow(QScreen* screen = nullptr);
+    explicit KSWindow(bool enableAnimation,
+                      QScreen* screen = nullptr);
     ~KSWindow() override;
 
     // 背景模糊
-    qreal blurRadius();
-    void setBlurRadius(qreal radius);
+    qreal blurOpacity();
+    void setBlurOpacity(qreal blurOpacity);
 
     void startBlur();
     void resetBlur();
@@ -58,11 +59,13 @@ protected:
 
 private:
     QScreen* m_screen = nullptr;
+    bool m_enableAnimation = false;
     QPixmap m_background;
     QPixmap m_scaledBackground;
+    QPixmap m_blurScaledBackground;
     KSScreenSaver* m_screensaver = nullptr;
     QPropertyAnimation* m_blurAnimation = nullptr;
-    qreal  m_blurRadius = 0;
+    qreal  m_blurOpacity = 0;
 };
 
 #endif  //KIRAN_SCREENSAVER_SRC_VIEW_KS_WINDOW_H_

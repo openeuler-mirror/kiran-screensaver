@@ -11,7 +11,11 @@
 
 #include "ui_ks-locker-demo.h"
 
-KSLockerDemo::KSLockerDemo(QWidget *parent) : QWidget(parent), ui(new Ui::KSLockerDemo), m_parentWidget(parent)
+KSLockerDemo::KSLockerDemo(bool enableAnimation, QWidget *parent)
+    : QWidget(parent),
+      ui(new Ui::KSLockerDemo),
+      m_parentWidget(parent),
+      m_enableAnimation(enableAnimation)
 {
     ui->setupUi(this);
     setAttribute(Qt::WA_TranslucentBackground);
@@ -81,31 +85,34 @@ void KSLockerDemo::setActive(bool active)
     KLOG_DEBUG() << "set active:" << active;
     m_active = active;
 
-    m_animation->setDuration(m_active?600:50);
-    m_animation->setDirection(m_active?QAbstractAnimation::Forward:QAbstractAnimation::Backward);
-    m_animation->start();
-
-    if(m_active)
+    if(m_enableAnimation)
     {
-        setVisible(true);
+        m_animation->setDuration(m_active?600:50);
+        m_animation->setDirection(m_active?QAbstractAnimation::Forward:QAbstractAnimation::Backward);
+        m_animation->start();
+    }
+    else
+    {
+        m_opacityEffect->setOpacity(m_active?1:0);
     }
 }
 
 void KSLockerDemo::init()
 {
-    // 默认不显示
-    setVisible(false);
-
     //　设置透明效果
-    m_opactiyEffect = new QGraphicsOpacityEffect(this);
-    setGraphicsEffect(m_opactiyEffect);
+    m_opacityEffect = new QGraphicsOpacityEffect(this);
+    m_opacityEffect->setOpacity(0);
+    setGraphicsEffect(m_opacityEffect);
 
     // 渐出动画
-    m_animation = new QPropertyAnimation(this);
-    m_animation->setTargetObject(m_opactiyEffect);
-    m_animation->setPropertyName("opacity");
-    m_animation->setStartValue(0);
-    m_animation->setEndValue(1);
+    if( m_enableAnimation )
+    {
+        m_animation = new QPropertyAnimation(this);
+        m_animation->setTargetObject(m_opacityEffect);
+        m_animation->setPropertyName("opacity");
+        m_animation->setStartValue(0);
+        m_animation->setEndValue(1);
+    }
 }
 
 void KSLockerDemo::adjustGeometry(const QSize &size)

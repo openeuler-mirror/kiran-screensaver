@@ -18,6 +18,7 @@
 #define KEY_IDLE_ACTIVATION_LOCK        "idle-activation-lock"
 #define KEY_CAN_LOGOUT                  "can-logout"
 #define KEY_CAN_USER_SWITCH             "can-user-switch"
+#define KEY_ENABLE_ANIMATION            "enable-animation"
 
 KSPrefs::KSPrefs(QObject* parent)
     : QObject(parent)
@@ -40,13 +41,14 @@ bool KSPrefs::init()
     m_idleActivationLock = m_screensaverSettings->get(KEY_IDLE_ACTIVATION_LOCK).toBool();
     m_canLogout = m_screensaverSettings->get(KEY_CAN_LOGOUT).toBool();
     m_canUserSwitch = m_screensaverSettings->get(KEY_CAN_USER_SWITCH).toBool();
+    m_enableAnimation = m_screensaverSettings->get(KEY_ENABLE_ANIMATION).toBool();
 
     ///输出设置项
-    // clang-format off
-    KLOG_DEBUG() << "load kiran-screensaver prefs:" << "\n"
-                 << "\t" << KEY_CAN_LOGOUT << m_canLogout << "\n"
-                 << "\t" << KEY_CAN_USER_SWITCH << m_canUserSwitch;
-    // clang-format on
+    KLOG_DEBUG() << "load kiran-screensaver prefs:";
+    KLOG_DEBUG() << "\t" KEY_IDLE_ACTIVATION_LOCK << m_idleActivationLock;
+    KLOG_DEBUG() << "\t" KEY_CAN_LOGOUT << m_canLogout;
+    KLOG_DEBUG() << "\t" KEY_CAN_USER_SWITCH << m_canUserSwitch;
+    KLOG_DEBUG() << "\t" KEY_ENABLE_ANIMATION << m_enableAnimation;
 
     return true;
 }
@@ -92,11 +94,25 @@ void KSPrefs::handleGSettingsChanged(const QString& key)
     const QMap<QString, bool*> boolKeyMap = {
         {KEY_IDLE_ACTIVATION_LOCK, &m_idleActivationLock},
         {KEY_CAN_LOGOUT, &m_canLogout},
-        {KEY_CAN_USER_SWITCH, &m_canUserSwitch}};
+        {KEY_CAN_USER_SWITCH, &m_canUserSwitch},
+        {KEY_ENABLE_ANIMATION,&m_enableAnimation}
+    };
 
     auto boolIter = boolKeyMap.find(key);
     if (boolIter != boolKeyMap.end())
     {
         *boolIter.value() = m_screensaverSettings->get(boolIter.key()).toBool();
     }
+}
+
+bool KSPrefs::getEnableAnimation() const
+{
+    return m_enableAnimation;
+}
+
+void KSPrefs::setEnableAnimation(bool enableAnimation)
+{
+    RETURN_IF_SAME(m_enableAnimation,enableAnimation);
+    m_enableAnimation = enableAnimation;
+    m_screensaverSettings->set(KEY_ENABLE_ANIMATION,m_enableAnimation);
 }

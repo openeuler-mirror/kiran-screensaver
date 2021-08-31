@@ -22,11 +22,13 @@
 #include <QStateMachine>
 #include <QSignalTransition>
 #include <QPropertyAnimation>
+#include <QParallelAnimationGroup>
 
-KSScreensaver::KSScreensaver(QWidget *parent)
+KSScreensaver::KSScreensaver(bool enableAnimation, QWidget *parent)
     : QWidget(parent),
       ui(new Ui::KSScreensaver),
-      m_parentWidget(parent)
+      m_parentWidget(parent),
+      m_enableAnimation(enableAnimation)
 {
     ui->setupUi(this);
     setAttribute(Qt::WA_TranslucentBackground);
@@ -90,6 +92,7 @@ void KSScreensaver::setupStateMachine()
     KLOG_DEBUG() << "setup state machine...";
     // 初始化状态机
     m_stateMachine = new QStateMachine(this);
+    m_stateMachine->setAnimated(m_enableAnimation);
     m_activeState = new QState(m_stateMachine);
     m_unactiveState = new QState(m_stateMachine);
 
@@ -98,16 +101,18 @@ void KSScreensaver::setupStateMachine()
     m_activeState->assignProperty(this,"geometry",QRect(0,0,this->width(),this->height()));
     auto toInactiveTransition = m_activeState->addTransition(this,SIGNAL(inactivation()),m_unactiveState);
 
+    auto inActiveAnimationGroup = new QParallelAnimationGroup(m_stateMachine);
+    toInactiveTransition->addAnimation(inActiveAnimationGroup);
+
     auto inActiveOpacityAnimation = new QPropertyAnimation(m_opacityEffect,"opacity");
     inActiveOpacityAnimation->setDuration(300);
     inActiveOpacityAnimation->setEasingCurve(QEasingCurve::InCubic);
+    inActiveAnimationGroup->addAnimation(inActiveOpacityAnimation);
 
     auto inActiveGeometryAnimation = new QPropertyAnimation(this,"geometry");
     inActiveGeometryAnimation->setDuration(400);
     inActiveGeometryAnimation->setEasingCurve(QEasingCurve::InCubic);
-
-    toInactiveTransition->addAnimation(inActiveOpacityAnimation);
-    toInactiveTransition->addAnimation(inActiveGeometryAnimation);
+    inActiveAnimationGroup->addAnimation(inActiveGeometryAnimation);
 
     // 非激活状态属性设置
     m_unactiveState->assignProperty(m_opacityEffect,"opacity",QVariant(0));

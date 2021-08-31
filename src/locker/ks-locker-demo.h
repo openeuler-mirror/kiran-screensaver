@@ -21,7 +21,7 @@ class KSLockerDemo : public QWidget
     Q_OBJECT
     Q_PROPERTY(bool active READ active WRITE setActive)
 public:
-    explicit KSLockerDemo(QWidget *parent = nullptr);
+    explicit KSLockerDemo(bool enableAnimation, QWidget* parent = nullptr);
     ~KSLockerDemo() override;
 
     bool eventFilter(QObject *watched, QEvent *event) override;
@@ -40,8 +40,9 @@ private:
     Ui::KSLockerDemo *ui;
     QWidget* m_parentWidget = nullptr;
     bool m_active = false;
-    QPropertyAnimation* m_animation;
-    QGraphicsOpacityEffect* m_opactiyEffect;
+    bool m_enableAnimation = false;
+    QPropertyAnimation* m_animation = nullptr;
+    QGraphicsOpacityEffect* m_opacityEffect;
     void adjustGeometry(const QSize& size);
 };
 

@@ -38,7 +38,7 @@
 
 KSManager::~KSManager()
 {
-    ///NOTE: 删除nullptr无影响
+    // delete nullptr无影响
     delete m_screenManager;
     delete m_prefs;
     delete m_fade;
@@ -64,7 +64,7 @@ bool KSManager::init()
     m_fade = new KSFade;
 
     // 屏幕管理类
-    m_screenManager = new KSScreenManager(m_fade);
+    m_screenManager = new KSScreenManager(nullptr, m_fade);
 
     // 初始化DBus服务
     if(!initDBusListener())

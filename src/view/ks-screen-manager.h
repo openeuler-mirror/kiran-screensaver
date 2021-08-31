@@ -24,17 +24,21 @@
 #include <QObject>
 #include <QPixmap>
 
-class KSWindow;
+ class KSWindow;
 class QScreen;
 class QGSettings;
 class KSFade;
 class KSScreensaver;
 class KSLockerDemo;
+class QStateMachine;
+class KSPrefs;
 class KSScreenManager : public QObject
 {
     Q_OBJECT
 public:
-    KSScreenManager(KSFade* fade,QObject* parent = nullptr);
+    KSScreenManager(KSPrefs* prefs,
+                    KSFade* fade,
+                    QObject* parent = nullptr);
     ~KSScreenManager();
 
     bool eventFilter(QObject* watched, QEvent* event) override;
@@ -46,7 +50,7 @@ public:
     bool getActive();
 
     void setLockActive(bool lockActive);
-    bool getLockActive();
+    bool getLockActive() const;
     bool requestUnlock();
 
 private:
@@ -62,16 +66,17 @@ private slots:
     void handleScreenRemoved(QScreen* screen);
 
 private:
+    KSPrefs* m_prefs = nullptr;
+    bool m_enableAnimation = false;
     bool m_active = false;
     bool m_lockActive = false;
     bool m_dialogUp = false;
     KSFade * m_fade = nullptr;
-
     QPixmap m_background;
-
     QMap<QScreen* ,KSWindow*> m_windowMap;
     KSScreensaver* m_screensaver;
     KSLockerDemo* m_lockerDemo;
+    QStateMachine* m_stateMachine;
 };
 
 #endif  //KIRAN_SCREENSAVER_SRC_SCREEN_MANAGER_KS_SCREEN_MANAGER_H_

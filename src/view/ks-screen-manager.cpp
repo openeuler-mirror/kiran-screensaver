@@ -17,23 +17,32 @@
   * along with this program; If not, see <http: //www.gnu.org/licenses/>. 
   */
 #include "ks-screen-manager.h"
-#include "ks-window.h"
 #include "ks-fade.h"
-#include "screensaver/ks-screensaver.h"
+#include "ks-prefs.h"
+#include "ks-window.h"
 #include "locker/ks-locker-demo.h"
+#include "screensaver/ks-screensaver.h"
 
 #include <qt5-log-i.h>
 #include <QApplication>
 #include <QGSettings>
-#include <QPixmap>
-#include <QScreen>
-#include <QTimer>
 #include <QKeyEvent>
+#include <QScreen>
+#include <QStateMachine>
+#include <QTimer>
 
-KSScreenManager::KSScreenManager(KSFade* fade,QObject *parent)
+KSScreenManager::KSScreenManager(KSPrefs *prefs,
+                                 KSFade *fade,
+                                 QObject *parent)
     : QObject(parent),
-      m_fade(fade)
+      m_fade(fade),
+      m_prefs(prefs)
 {
+    if (m_prefs != nullptr)
+    {
+        m_enableAnimation = m_prefs->getEnableAnimation();
+    }
+
     qApp->installEventFilter(this);
 }
 
@@ -44,9 +53,8 @@ KSScreenManager::~KSScreenManager()
 
 bool KSScreenManager::setActive(bool active)
 {
-    KLOG_DEBUG() << "set active:" << active;
-
     bool res = false;
+
     if (active)
     {
         res = activate();
@@ -55,6 +63,9 @@ bool KSScreenManager::setActive(bool active)
     {
         res = deactivate();
     }
+
+    KLOG_DEBUG() << "set screen manager:" << (active?"activate":"inactivate") << ":" << (res?"succeeded":"failed");
+
     return res;
 }
 
@@ -65,16 +76,18 @@ bool KSScreenManager::getActive()
 
 void KSScreenManager::setLockActive(bool lockActive)
 {
-    if( m_lockActive == lockActive)
+    if (m_lockActive == lockActive)
     {
+        QString debugTips = QString("trying to %1 locker,when locker is already %1").arg(lockActive?"activate":"inactivate");
+        KLOG_DEBUG() << debugTips;
         return;
     }
 
-    KLOG_DEBUG() << "set lock active:" << lockActive;
+    KLOG_DEBUG() << (lockActive?"activate":"inactivate") << "locker...";
 
     m_lockActive = lockActive;
 
-    if(m_lockActive)
+    if (m_lockActive)
     {
         m_lockerDemo->setActive(true);
         m_screensaver->setActive(false);
@@ -85,9 +98,10 @@ void KSScreenManager::setLockActive(bool lockActive)
         m_screensaver->setActive(true);
     }
 
-    for(auto iter = m_windowMap.begin();iter!=m_windowMap.end();iter++)
+    //TODO:暂时只在主屏上显示和模糊
+    for (auto iter = m_windowMap.begin(); iter != m_windowMap.end(); iter++)
     {
-        if(m_lockActive)
+        if (m_lockActive && iter.value() == m_lockerDemo->parentWidget())
         {
             iter.value()->startBlur();
         }
@@ -98,7 +112,7 @@ void KSScreenManager::setLockActive(bool lockActive)
     }
 };
 
-bool KSScreenManager::getLockActive()
+bool KSScreenManager::getLockActive() const
 {
     return m_lockActive;
 }
@@ -115,6 +129,7 @@ void KSScreenManager::handleScreenAdded(QScreen *screen)
     {
         return;
     }
+
     createWindowForScreen(screen);
     requestUnlock();
 }
@@ -141,8 +156,8 @@ void KSScreenManager::handleScreenRemoved(QScreen *screen)
 
 void KSScreenManager::createWindowForScreen(QScreen *screen)
 {
-    KLOG_DEBUG() << "create window for screen:" << screen->name();
-    auto window = new KSWindow(screen);
+    auto window = new KSWindow(false, screen);
+    KLOG_DEBUG() << "create window for screen:" << window->objectName();
 
     window->setScreen(screen);
     window->setBackground(m_background);
@@ -173,17 +188,19 @@ bool KSScreenManager::activate()
 
     /// 创建解锁框,屏保框
     auto findPrimaryWindowIter = m_windowMap.find(qApp->primaryScreen());
-    KSWindow*defaultWindow = findPrimaryWindowIter==m_windowMap.end()?nullptr:findPrimaryWindowIter.value();
-    m_lockerDemo = new KSLockerDemo(defaultWindow);
-    m_screensaver = new KSScreensaver(defaultWindow);
+    KSWindow *defaultWindow = findPrimaryWindowIter == m_windowMap.end() ? nullptr : findPrimaryWindowIter.value();
+    // TODO: 还未处理不存在屏幕的情况
+    m_lockerDemo = new KSLockerDemo(m_enableAnimation, defaultWindow);
+    m_screensaver = new KSScreensaver(m_enableAnimation, defaultWindow);
     m_lockerDemo->stackUnder(m_screensaver);
     m_screensaver->setVisible(true);
+    m_lockerDemo->setVisible(true);
 
     connect(qApp, &QApplication::screenAdded, this, &KSScreenManager::handleScreenAdded);
     connect(qApp, &QApplication::screenRemoved, this, &KSScreenManager::handleScreenRemoved);
 
     /// 屏保激活,应延迟复位
-    QTimer::singleShot(500,[this](){
+    QTimer::singleShot(500, [this]() {
         m_fade->reset();
     });
 
@@ -238,7 +255,7 @@ void KSScreenManager::destroyWindows()
 
 bool KSScreenManager::eventFilter(QObject *watched, QEvent *event)
 {
-    if(!m_active)
+    if (!m_active)
     {
         return false;
     }
@@ -252,8 +269,8 @@ bool KSScreenManager::eventFilter(QObject *watched, QEvent *event)
     }
     case QEvent::KeyPress:
     {
-        auto keyEvent = dynamic_cast<QKeyEvent*>(event);
-        if(keyEvent->key() == Qt::Key_Escape)
+        auto keyEvent = dynamic_cast<QKeyEvent *>(event);
+        if (keyEvent->key() == Qt::Key_Escape)
         {
             setLockActive(false);
         }

@@ -19,17 +19,17 @@
 
 #include "ks-window.h"
 
-#include <QProcess>
-#include <QWindow>
 #include <QBoxLayout>
-#include <QScreen>
-#include <QResizeEvent>
-#include <QtMath>
 #include <QPainter>
+#include <QProcess>
+#include <QResizeEvent>
+#include <QScreen>
+#include <QWindow>
+#include <QtMath>
 
 #include <qt5-log-i.h>
-#include <QPropertyAnimation>
 #include <QGraphicsBlurEffect>
+#include <QPropertyAnimation>
 
 QT_BEGIN_NAMESPACE
 // qt源代码中 src/widgets/effects/qpixmapfilter.cpp中定义模糊图像的方法
@@ -37,22 +37,25 @@ Q_WIDGETS_EXPORT void qt_blurImage(QImage &blurImage, qreal radius, bool quality
 //Q_WIDGETS_EXPORT void qt_blurImage(QPainter *p, QImage &blurImage, qreal radius, bool quality, bool alphaOnly, int transposed = 0);
 QT_END_NAMESPACE
 
+KSWindow::KSWindow(bool enableAnimation, QScreen *screen)
+    : QWidget(nullptr),
+      m_enableAnimation(enableAnimation)
 
-KSWindow::KSWindow(QScreen *screen)
-    :QWidget(nullptr)
 {
     setScreen(screen);
 
-    auto layout = new QHBoxLayout(this);
-    layout->setMargin(0);
+    //TODO:正式发布应加入此标志位
+    //setWindowFlag(Qt::BypassWindowManagerHint);
 
-    m_blurAnimation = new QPropertyAnimation(this);
-    m_blurAnimation->setTargetObject(this);
-    m_blurAnimation->setPropertyName("blurRadius");
-    m_blurAnimation->setStartValue(0);
-    m_blurAnimation->setEndValue(40);
-    m_blurAnimation->setDuration(600);
-    m_blurAnimation->setEasingCurve(QEasingCurve::InCubic);
+    if (m_enableAnimation)
+    {
+        m_blurAnimation = new QPropertyAnimation(this);
+        m_blurAnimation->setTargetObject(this);
+        m_blurAnimation->setPropertyName("blurOpacity");
+        m_blurAnimation->setStartValue(0);
+        m_blurAnimation->setEndValue(1);
+        m_blurAnimation->setDuration(500);
+    }
 }
 
 KSWindow::~KSWindow()
@@ -61,20 +64,20 @@ KSWindow::~KSWindow()
 
 void KSWindow::setScreen(QScreen *screen)
 {
-    if(m_screen == screen)
+    if (m_screen == screen)
         return;
 
-    if(m_screen)
+    if (m_screen)
     {
-        disconnect(m_screen,&QScreen::geometryChanged,
-                   this,&KSWindow::handleScreenGeometryChanged);
+        disconnect(m_screen, &QScreen::geometryChanged,
+                   this, &KSWindow::handleScreenGeometryChanged);
     }
 
-    if(screen)
+    if (screen)
     {
         setObjectName(QString("screen_background_%1").arg(screen->name()));
-        connect(screen,&QScreen::geometryChanged,
-                this,&KSWindow::handleScreenGeometryChanged);
+        connect(screen, &QScreen::geometryChanged,
+                this, &KSWindow::handleScreenGeometryChanged);
     }
     else
     {
@@ -82,13 +85,13 @@ void KSWindow::setScreen(QScreen *screen)
     }
 
     m_screen = screen;
-    if(m_screen)
+    if (m_screen)
         handleScreenGeometryChanged(m_screen->geometry());
 }
 
 void KSWindow::handleScreenGeometryChanged(const QRect &geometry)
 {
-    setGeometry(QRect(geometry.topLeft().x(),geometry.topLeft().y(),geometry.width(),geometry.height()));
+    setGeometry(QRect(geometry.topLeft().x(), geometry.topLeft().y(), geometry.width(), geometry.height()));
 }
 
 void KSWindow::setBackground(const QPixmap &pixmap)
@@ -99,13 +102,13 @@ void KSWindow::setBackground(const QPixmap &pixmap)
 void KSWindow::resizeEvent(QResizeEvent *event)
 {
     //由原始图片拉升已获得更好的显示效果
-    if(!m_background.isNull())
+    if (!m_background.isNull())
     {
         QSize minSize = event->size();
         QSize imageSize = m_background.size();
 
         qreal factor = qMax(minSize.width() / (double)imageSize.width(),
-                      minSize.height() / (double)imageSize.height());
+                            minSize.height() / (double)imageSize.height());
 
         QSize newPixbufSize;
         newPixbufSize.setWidth(qFloor(imageSize.width() * factor + 0.5));
@@ -113,7 +116,11 @@ void KSWindow::resizeEvent(QResizeEvent *event)
 
         QPixmap scaledPixmap = m_background.scaled(newPixbufSize, Qt::KeepAspectRatio, Qt::FastTransformation);
 
+        QImage scaledBlurImage = scaledPixmap.toImage();
+        qt_blurImage(scaledBlurImage, 35.0, false);
+
         m_scaledBackground = scaledPixmap;
+        m_blurScaledBackground = QPixmap::fromImage(scaledBlurImage);
     }
     QWidget::resizeEvent(event);
 }
@@ -121,7 +128,7 @@ void KSWindow::resizeEvent(QResizeEvent *event)
 void KSWindow::paintEvent(QPaintEvent *event)
 {
     QPainter painter(this);
-    painter.setRenderHint(QPainter::Antialiasing);
+    painter.setRenderHint(QPainter::SmoothPixmapTransform);
 
     // 绘制背景
     if (!m_scaledBackground.isNull())
@@ -133,16 +140,17 @@ void KSWindow::paintEvent(QPaintEvent *event)
                              imageSize.width(),
                              imageSize.height());
 
-        if(m_blurRadius>0)
-        {
-            QImage blurImage = m_scaledBackground.toImage();
-            qt_blurImage(blurImage,m_blurRadius,false,false);
-            QPixmap blurBackground = QPixmap::fromImage(blurImage);
-            painter.drawPixmap(drawTargetRect,blurBackground,blurBackground.rect());
-        }
-        else
+        if (m_blurOpacity != 1)
         {
             painter.drawPixmap(drawTargetRect, m_scaledBackground, m_scaledBackground.rect());
+        }
+
+        if (m_blurOpacity > 0)
+        {
+            painter.save();
+            painter.setOpacity(m_blurOpacity);
+            painter.drawPixmap(drawTargetRect, m_blurScaledBackground, m_blurScaledBackground.rect());
+            painter.restore();
         }
     }
     QWidget::paintEvent(event);
@@ -153,25 +161,37 @@ void KSWindow::enterEvent(QEvent *event)
     QWidget::enterEvent(event);
 }
 
-qreal KSWindow::blurRadius()
+qreal KSWindow::blurOpacity()
 {
-    return m_blurRadius;
+    return m_blurOpacity;
 }
 
-void KSWindow::setBlurRadius(qreal radius)
+void KSWindow::setBlurOpacity(qreal blurOpacity)
 {
-    m_blurRadius = radius;
-    repaint();
+    KLOG_DEBUG() << "set blur opacity:" << blurOpacity;
+    m_blurOpacity = blurOpacity;
+    update();
 }
 
 void KSWindow::startBlur()
 {
-    m_blurAnimation->start();
+    if (m_enableAnimation)
+    {
+        m_blurAnimation->start();
+    }
+    else
+    {
+        m_blurOpacity = 1;
+        update();
+    }
 }
 
 void KSWindow::resetBlur()
 {
-    m_blurAnimation->stop();
-    m_blurRadius = 0;
-    repaint();
+    if (m_enableAnimation)
+    {
+        m_blurAnimation->stop();
+    }
+    m_blurOpacity = 0;
+    update();
 }
