@@ -8,6 +8,10 @@
 #include <QtGlobal>
 #include "ks-fade-interface.h"
 
+/**
+ * @brief: 通过XGamma插件实现屏幕淡出相关功能实现
+ * @note:  暂未实现
+ */
 class KSFadeGamma : public KSFadeInterface
 {
 public:

@@ -15,7 +15,7 @@ int main(int argc, char *argv[])
     KSManager manager;
     if( !manager.init() )
     {
-        KLOG_ERROR("KSManager init failed!");
+        KLOG_ERROR() << "kiran-screensaver init failed! exit.";
         return EXIT_FAILURE;
     }
 

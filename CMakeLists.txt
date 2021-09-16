@@ -50,7 +50,8 @@ file(GLOB_RECURSE SRC "src/*.cpp" "src/*.h")
 add_executable(${PROJECT_NAME}
         ${DBUS_ADAPTOR_SRC}
         ${GSM_PRESENCE_SRC}
-        ${SRC})
+        ${SRC}
+        resources/kiran-screensaver.qrc)
 
 target_include_directories(${PROJECT_NAME} PRIVATE
         ${CMAKE_BINARY_DIR}

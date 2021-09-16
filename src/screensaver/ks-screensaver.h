@@ -30,18 +30,19 @@ class QState;
 class KSScreensaver : public QWidget
 {
     Q_OBJECT
-    Q_PROPERTY(bool active READ active WRITE setActive)
 public:
     explicit KSScreensaver(bool enableAnimation,
                            QWidget* parent = nullptr);
     ~KSScreensaver() override;
 
-    bool active();
-    void setActive(bool active);
+    // 遮盖状态,是否覆盖父窗口内容
+    bool maskState();
+    void setMaskState(bool maskState);
 
     bool eventFilter(QObject* watched, QEvent* event) override;
 
 private:
+    void init();
     void initGraphicsEffect();
     void setupStateMachine();
     void adjustGeometry(const QSize& size);
@@ -52,17 +53,20 @@ protected:
     void changeEvent(QEvent *event) override;
 
 signals:
-    void activation();
-    void inactivation();
+    void masking();
+    void unmasking();
+
+private slots:
+    void startUpdateTimeDateTimer();
 
 private:
     Ui::KSScreensaver *ui;
-    bool m_isActive = true;
+    bool m_masked = true;
     bool m_enableAnimation = false;
     QWidget* m_parentWidget = nullptr;
     QStateMachine* m_stateMachine = nullptr;
-    QState* m_activeState = nullptr;
-    QState* m_unactiveState = nullptr;
+    QState* m_maskState = nullptr;
+    QState* m_unMaskState = nullptr;
     KiranGraphicsGlowEffect* m_opacityEffect = nullptr;
 };
 

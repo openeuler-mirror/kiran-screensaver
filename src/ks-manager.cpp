@@ -49,7 +49,6 @@ KSManager::~KSManager()
 
 bool KSManager::init()
 {
-    // 加载配置项
     m_prefs = new KSPrefs;
     if(!m_prefs->init())
     {
@@ -57,14 +56,15 @@ bool KSManager::init()
         return false;
     }
 
-    // 抓取类
     m_grab = KSGrab::getInstance();
 
-    // 屏幕淡出功能
     m_fade = new KSFade;
 
     // 屏幕管理类
-    m_screenManager = new KSScreenManager(nullptr, m_fade);
+    m_screenManager = new KSScreenManager(m_prefs, m_fade);
+    connect(m_screenManager,&KSScreenManager::sigReqDeactivated,[this](){
+        m_listener->setActiveStatus(false);
+    });
 
     // 初始化DBus服务
     if(!initDBusListener())
@@ -92,7 +92,7 @@ bool KSManager::initDBusListener()
     }
 
     connect(m_listener,&KSListener::sigActiveChanged,
-            this,&KSManager::handleListenerActiveChanged,
+            this, &KSManager::onListenerActiveChanged,
             Qt::DirectConnection);
 
     connect(m_listener,&KSListener::sigLock,
@@ -140,8 +140,8 @@ bool KSManager::initIdleWatcher()
         return false;
     }
 
-    connect(m_idleWatcher,&KSIdleWatcher::idleChanged,this,&KSManager::handleIdleChanged,Qt::DirectConnection);
-    connect(m_idleWatcher,&KSIdleWatcher::idleNoticeChanged,this,&KSManager::handleIdleNoticeChanged,Qt::DirectConnection);
+    connect(m_idleWatcher,&KSIdleWatcher::idleChanged,this, &KSManager::onWatcherIdleChanged,Qt::DirectConnection);
+    connect(m_idleWatcher,&KSIdleWatcher::idleNoticeChanged,this, &KSManager::onWatcherIdleNoticeChanged,Qt::DirectConnection);
 
     /// test
     m_idleWatcher->setEnabled(true);
@@ -150,7 +150,7 @@ bool KSManager::initIdleWatcher()
     return true;
 }
 
-void KSManager::handleIdleChanged(bool idle, bool& handled)
+void KSManager::onWatcherIdleChanged(bool idle, bool& handled)
 {
     KLOG_DEBUG("handle idle changed: %s",idle? "idle" : "not idle");
 
@@ -172,7 +172,7 @@ void KSManager::handleIdleChanged(bool idle, bool& handled)
 // 如果是空闲预告 isEffect false,可能两种情况:
 //     1. not idle -> idle notice 状态下被取消进入空闲
 //     2. not idle -> idle notice(true) -> idle -> idle notice(false) 已进入空闲状态
-void KSManager::handleIdleNoticeChanged(bool isEffect, bool& handled)
+void KSManager::onWatcherIdleNoticeChanged(bool isEffect, bool& handled)
 {
     KLOG_DEBUG() << "handle idle notice changed: " << isEffect;
 
@@ -183,37 +183,42 @@ void KSManager::handleIdleNoticeChanged(bool isEffect, bool& handled)
     bool inhibited = m_listener->isInhibited();;
 
     // 屏保是否已被激活
-    bool isActivate = false;
+    bool isActivate = m_screenManager->getActive();
 
     if( isEffect ) ///空闲预告
     {
-        ///空闲时允许激活屏幕保护 且 未被抑制
-        if(activationEnabled && !inhibited)
+        //抓取鼠标键盘输入输出（屏幕淡出时，可通过点击鼠标或敲击键盘取消，这个取消过程的相应不应该被传入桌面）,是否成功
+        if( !m_grab->grabOffscreen(true) )
         {
-            //抓取鼠标键盘输入输出（屏幕淡出时，可通过点击鼠标或敲击键盘取消，这个取消过程的相应不应该被传入桌面）,是否成功
-            m_grab->grabOffscreen(true);
-            ///开始屏幕淡入淡出
-            m_fade->startAsync();
-            handled = true;
+            return;
         }
+
+        //屏幕开始淡出
+        m_fade->startAsync();
+
+        handled = true;
     }
     else ///取消空闲预告
     {
-        ///屏保未显示出来,正当前正处于"no idle"、"idle-notice"、"idle"第二步和第三步之间的位置,此时发出的预告则是取消掉预告通知
-        ///应释放鼠标键盘的抓取,复位屏幕的淡出效果
-        if( !isActivate )
+        // 屏保和内容窗口已显示出来,此时屏幕淡出效果以及输入设备的抓取由KSScreenManager负责操作
+        if( m_screenManager->getActive() )
         {
+            KLOG_DEBUG() << "screen manager active,skipping fade cancelation!";
+        }
+        else
+        {
+            // 屏保未显示出来,正当前正处于"no idle"、"idle-notice"、"idle"第二步和第三步之间的位置
+            // 此时发出的预告则是取消掉预告通知
+
+            // 复位屏幕的淡出效果
             m_fade->reset();
-            //延迟释放抓取输入设备,避免误输入
+
+            // 取消预告通知,释放抓取输入设备
             QTimer::singleShot(500,[this](){
                 m_grab->releaseGrab();
             });
         }
-        else
-        {
-            // 屏保已被激活,跳过淡出的取消
-            KLOG_DEBUG() << "manager active,skipping fade cancelation!";
-        }
+
         handled = true;
     }
 }
@@ -221,7 +226,7 @@ void KSManager::handleIdleNoticeChanged(bool isEffect, bool& handled)
 // listener 屏保激活状态改变处理方法
 // 当listener 屏保激活状态激活时,通过KSScreenManager激活屏保 激活成功时 关闭空闲监控
 // 当listener 屏保激活状态变更为闲置时,通过KSSScreenManager关闭屏保 开启监控
-void KSManager::handleListenerActiveChanged(bool active, bool& handled)
+void KSManager::onListenerActiveChanged(bool active, bool& handled)
 {
     // 改变屏幕管理状态
     bool bRes = m_screenManager->setActive(active);
@@ -235,11 +240,11 @@ void KSManager::handleListenerActiveChanged(bool active, bool& handled)
         handled = false;
     }
 
-    // active:   listener 激活  关闭空闲监控
+    // maskState:   listener 激活  关闭空闲监控
     // inactive: listener 未激活 开启空闲监控
     if ( handled && m_idleWatcher->getEnabled() )
     {
-        if(m_idleWatcher->setIdleDetectionActive(!active) )
+        if( !m_idleWatcher->setIdleDetectionActive(!active) )
         {
             KLOG_ERROR() << "can't set idle watcher active status:" << !active;
         }
@@ -253,13 +258,23 @@ void KSManager::handleListenerLock()
 {
     if(m_screenManager->getActive())
     {
-        m_screenManager->setLockActive(true);
+        // 屏保已被激活,显示锁定框
+        if(m_screenManager->getLockActive())
+        {
+            m_screenManager->setLockActive(true);
+        }
     }
     else
     {
-        if( m_screenManager->setActive(true) )
+        // 屏保未被激活,通过KSListener设置激活状态,
+        if( m_listener->setActiveStatus(true) )
         {
             m_screenManager->setLockActive(true);
+            m_screenManager->setLockVisible(true);
+        }
+        else
+        {
+            KLOG_DEBUG() << "can't activate screensaver and locker";
         }
     }
 }

@@ -10,6 +10,10 @@
 #include "ks-fade-interface.h"
 
 struct KSFadeXrandrPrivate;
+
+/**
+ * @brief 基于X11 xrandr插件接口实现的屏幕淡出具体实现
+ */
 class KSFadeXrandr : public KSFadeInterface
 {
 public:

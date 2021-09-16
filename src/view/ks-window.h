@@ -37,17 +37,14 @@ public:
     qreal blurOpacity();
     void setBlurOpacity(qreal blurOpacity);
 
-    void startBlur();
-    void resetBlur();
+    void setBlurBackground(bool blur);
+    bool getBlurBackground();
 
     // 设置绑定屏幕
     void setScreen(QScreen* screen);
 
     // 设置显示背景图
     void setBackground(const QPixmap& pixmap);
-
-    void setScreenSaverVisible(bool visible);
-    bool getScreenSaverVisible();
 
 private:
     void handleScreenGeometryChanged(const QRect& geometry);
@@ -60,12 +57,14 @@ protected:
 private:
     QScreen* m_screen = nullptr;
     bool m_enableAnimation = false;
+
+    bool m_blurBackground = false;
+    qreal m_blurOpacity = 0;
+    QPropertyAnimation* m_blurAnimation = nullptr;
+
     QPixmap m_background;
     QPixmap m_scaledBackground;
     QPixmap m_blurScaledBackground;
-    KSScreenSaver* m_screensaver = nullptr;
-    QPropertyAnimation* m_blurAnimation = nullptr;
-    qreal  m_blurOpacity = 0;
 };
 
 #endif  //KIRAN_SCREENSAVER_SRC_VIEW_KS_WINDOW_H_

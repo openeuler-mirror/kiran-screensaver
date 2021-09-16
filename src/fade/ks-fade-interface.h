@@ -5,6 +5,9 @@
 #ifndef KIRAN_SCREENSAVER_SRC_FADE_KS_FADE_INTERFACE_H_
 #define KIRAN_SCREENSAVER_SRC_FADE_KS_FADE_INTERFACE_H_
 
+/**
+ * @interface KSFade淡出接口,相关具体实现需继承该接口进行实现
+ */
 class KSFadeInterface
 {
 public:

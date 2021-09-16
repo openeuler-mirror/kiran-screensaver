@@ -78,6 +78,7 @@ KSGrab::KSGrab()
 
 void KSGrab::releaseGrab()
 {
+    KLOG_DEBUG() << "release grab";
     xcb_ungrab_keyboard(QX11Info::connection(),XCB_TIME_CURRENT_TIME);
     xcb_ungrab_pointer(QX11Info::connection(),XCB_TIME_CURRENT_TIME);
 }
@@ -88,6 +89,8 @@ bool KSGrab::grabWindow(WId wid, bool grabPointer)
     bool bRes = false;
 
     XServerGrabber serverGrabber;
+
+    releaseGrab();
 
     if (grabPointer)
     {
@@ -112,7 +115,7 @@ bool KSGrab::grabWindow(WId wid, bool grabPointer)
 
     auto reply = KS_XCB_REPLY(xcb_grab_keyboard,
                               QX11Info::connection(),
-                              false,
+                              true,
                               wid,
                               XCB_TIME_CURRENT_TIME,
                               XCB_GRAB_MODE_ASYNC,

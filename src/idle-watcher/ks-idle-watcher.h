@@ -9,6 +9,9 @@
 
 #include <QObject>
 
+/**
+ * @brief 空闲监控接口定义
+ */
 class KSIdleWatcher : public QObject
 {
     Q_OBJECT

@@ -11,8 +11,10 @@ class KSIdleWatcherFactory
 {
 public:
     ~KSIdleWatcherFactory() = default;
+
 private:
     KSIdleWatcherFactory() = default;
+
 public:
     static KSIdleWatcher* createIdleWatcher();
 };

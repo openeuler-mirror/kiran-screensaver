@@ -43,9 +43,9 @@ public:
     bool initIdleWatcher();
 
 private slots:
-    void handleIdleChanged(bool idle,bool &handled);
-    void handleIdleNoticeChanged(bool isEffect,bool &handled);
-    void handleListenerActiveChanged(bool active,bool &handled);
+    void onWatcherIdleChanged(bool idle,bool &handled);
+    void onWatcherIdleNoticeChanged(bool isEffect,bool &handled);
+    void onListenerActiveChanged(bool active,bool &handled);
     void handleListenerLock();
 
 private:

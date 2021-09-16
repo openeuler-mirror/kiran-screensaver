@@ -20,7 +20,7 @@
 #include "ks-locker-interface.h"
 #include "ks-screensaver-interface.h"
 
-//TODO:暂定,先完成锁屏和屏保,再考虑抽象成借口
+//TODO:暂定,先完成锁屏和屏保,再考虑抽象成接口
 class KSPluginInterface : public QObject
 {
 public:

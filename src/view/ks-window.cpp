@@ -43,9 +43,7 @@ KSWindow::KSWindow(bool enableAnimation, QScreen *screen)
 
 {
     setScreen(screen);
-
-    //TODO:正式发布应加入此标志位
-    //setWindowFlag(Qt::BypassWindowManagerHint);
+    setWindowFlag(Qt::BypassWindowManagerHint);
 
     if (m_enableAnimation)
     {
@@ -54,7 +52,7 @@ KSWindow::KSWindow(bool enableAnimation, QScreen *screen)
         m_blurAnimation->setPropertyName("blurOpacity");
         m_blurAnimation->setStartValue(0);
         m_blurAnimation->setEndValue(1);
-        m_blurAnimation->setDuration(500);
+        m_blurAnimation->setDuration(600);
     }
 }
 
@@ -173,25 +171,43 @@ void KSWindow::setBlurOpacity(qreal blurOpacity)
     update();
 }
 
-void KSWindow::startBlur()
+void KSWindow::setBlurBackground(bool blur)
 {
-    if (m_enableAnimation)
+    if(m_blurBackground == blur)
     {
-        m_blurAnimation->start();
+        return;
+    }
+
+    m_blurBackground = blur;
+
+    if(m_enableAnimation)
+    {
+        if(m_blurBackground)
+        {
+            m_blurAnimation->start();
+        }
+        else
+        {
+            m_blurAnimation->stop();
+            m_blurOpacity = 0;
+            update();
+        }
     }
     else
     {
-        m_blurOpacity = 1;
+        if(m_blurBackground)
+        {
+            m_blurOpacity = 1;
+        }
+        else
+        {
+            m_blurOpacity = 0;
+        }
         update();
     }
 }
 
-void KSWindow::resetBlur()
+bool KSWindow::getBlurBackground()
 {
-    if (m_enableAnimation)
-    {
-        m_blurAnimation->stop();
-    }
-    m_blurOpacity = 0;
-    update();
+    return m_blurBackground;
 }

@@ -1,4 +1,4 @@
- /**
+/**
   * @Copyright (C) 2020 ~ 2021 KylinSec Co., Ltd.
   *
   * Author:     liuxinhao <liuxinhao@kylinos.com.cn>
@@ -16,7 +16,7 @@
   * You should have received a copy of the GNU General Public License
   * along with this program; If not, see <http: //www.gnu.org/licenses/>. 
   */
- 
+
 #ifndef KIRAN_SCREENSAVER_SRC_SCREEN_MANAGER_KS_SCREEN_MANAGER_H_
 #define KIRAN_SCREENSAVER_SRC_SCREEN_MANAGER_KS_SCREEN_MANAGER_H_
 
@@ -24,7 +24,7 @@
 #include <QObject>
 #include <QPixmap>
 
- class KSWindow;
+class KSWindow;
 class QScreen;
 class QGSettings;
 class KSFade;
@@ -32,6 +32,10 @@ class KSScreensaver;
 class KSLockerDemo;
 class QStateMachine;
 class KSPrefs;
+
+//TODO: 还未处理解锁框跟着指针移动的情况
+//TODO: 暂时只在主屏上显示和模糊
+//TODO: 只显示屏保不显示锁定
 class KSScreenManager : public QObject
 {
     Q_OBJECT
@@ -44,19 +48,27 @@ public:
     bool eventFilter(QObject* watched, QEvent* event) override;
 
 public:
-    /// 设置激活状态
+    // 激活状态 (标志背景窗口和屏保是否被创建)
     bool setActive(bool visible);
-    /// 获取激活状态
     bool getActive();
 
+    // 锁定框激活状态 (标志锁定框时候被创建)
     void setLockActive(bool lockActive);
     bool getLockActive() const;
-    bool requestUnlock();
+
+    // 锁定框是否可见
+    void setLockVisible(bool lockVisible);
+    bool getLockVisible(bool lockVisible);
+
+signals:
+    void sigReqDeactivated();
 
 private:
+    void moveContentToWindow(KSWindow* window);
+
     bool activate();
     void createWindows();
-    void createWindowForScreen(QScreen* screen);
+    KSWindow* createWindowForScreen(QScreen* screen);
 
     bool deactivate();
     void destroyWindows();
@@ -66,17 +78,33 @@ private slots:
     void handleScreenRemoved(QScreen* screen);
 
 private:
+    // kiran-screensaver配置项
     KSPrefs* m_prefs = nullptr;
+    // 屏幕淡出接口实现
+    KSFade* m_fade = nullptr;
+
+    // 是否启用动画
     bool m_enableAnimation = false;
+    // 空闲时激活锁定
+    bool m_idleActivationLock = false;
+
+    // 屏保和容器窗口是否激活
     bool m_active = false;
+    // 解锁框是否激活
     bool m_lockActive = false;
-    bool m_dialogUp = false;
-    KSFade * m_fade = nullptr;
+    // 解锁框是否可见
+    bool m_lockerVisible = false;
+
+    // 窗口背景缓存
     QPixmap m_background;
-    QMap<QScreen* ,KSWindow*> m_windowMap;
+    // 屏幕与背景容器窗口映射
+    QMap<QScreen*, KSWindow*> m_windowMap;
+    // 当前显示内容的背景窗口
+    KSWindow* m_currentWindow = nullptr;
+    // 屏保界面
     KSScreensaver* m_screensaver;
+    // 解锁框界面
     KSLockerDemo* m_lockerDemo;
-    QStateMachine* m_stateMachine;
 };
 
 #endif  //KIRAN_SCREENSAVER_SRC_SCREEN_MANAGER_KS_SCREEN_MANAGER_H_

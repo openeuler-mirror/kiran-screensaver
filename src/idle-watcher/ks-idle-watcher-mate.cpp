@@ -16,6 +16,7 @@ enum PresenceStatus
     PRESENCE_STATUS_BUSY,
     PRESENCE_STATUS_IDLE
 };
+
 /// 用于打印空闲状态枚举值
 static const QMap<PresenceStatus,QString> PresenceStatusDescMap = {
     {PRESENCE_STATUS_AVAILABLE,"available"},

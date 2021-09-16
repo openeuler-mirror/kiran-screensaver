@@ -237,7 +237,7 @@ bool KSListener::setActiveStatus(bool active)
 {
     if (m_isActive == active)
     {
-        KLOG_DEBUG("trying to set active state when already: %s", active ? "active" : "inactive");
+        KLOG_DEBUG("trying to set maskState state when already: %s", active ? "maskState" : "inactive");
         return false;
     }
 
@@ -248,7 +248,7 @@ bool KSListener::setActiveStatus(bool active)
     emit sigActiveChanged(active, handled);
     if (!handled)
     {
-        KLOG_DEBUG("active changed signal not handled,update active(%s) failed!", active ? "true" : "false");
+        KLOG_DEBUG("faded changed signal not handled,update maskState(%s) failed!", active ? "true" : "false");
         return false;
     }
 

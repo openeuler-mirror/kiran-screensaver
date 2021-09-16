@@ -11,6 +11,9 @@
 #include <QObject>
 #include "ks-fade-interface.h"
 
+/**
+ * @brief: 提供屏幕淡出相关封装的接口
+ */
 class KSFade : public QObject
 {
     Q_OBJECT

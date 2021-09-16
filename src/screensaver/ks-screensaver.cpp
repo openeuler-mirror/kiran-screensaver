@@ -17,12 +17,14 @@
 #include "qt5-log-i.h"
 #include "ui_ks-screensaver.h"
 
-#include <QResizeEvent>
-#include <QtMath>
-#include <QStateMachine>
-#include <QSignalTransition>
-#include <QPropertyAnimation>
+#include <QDateTime>
 #include <QParallelAnimationGroup>
+#include <QPropertyAnimation>
+#include <QResizeEvent>
+#include <QSignalTransition>
+#include <QStateMachine>
+#include <QTimer>
+#include <QtMath>
 
 KSScreensaver::KSScreensaver(bool enableAnimation, QWidget *parent)
     : QWidget(parent),
@@ -31,17 +33,7 @@ KSScreensaver::KSScreensaver(bool enableAnimation, QWidget *parent)
       m_enableAnimation(enableAnimation)
 {
     ui->setupUi(this);
-    setAttribute(Qt::WA_TranslucentBackground);
-    setMouseTracking(true);
-
-    initGraphicsEffect();
-    setupStateMachine();
-
-    if(m_parentWidget!= nullptr)
-    {
-        m_parentWidget->installEventFilter(this);
-        adjustGeometry(m_parentWidget->size());
-    }
+    init();
 }
 
 KSScreensaver::~KSScreensaver()
@@ -49,18 +41,91 @@ KSScreensaver::~KSScreensaver()
     delete ui;
 }
 
+bool KSScreensaver::maskState()
+{
+    return m_masked;
+}
+
+void KSScreensaver::setMaskState(bool maskState)
+{
+    if (maskState == m_masked)
+    {
+        return;
+    }
+
+    KLOG_DEBUG() << "set mask state:" << (maskState ? "mask" : "unmask");
+    m_masked = maskState;
+
+    if (m_masked)
+    {
+        emit masking();
+    }
+    else
+    {
+        if (m_stateMachine->isRunning())
+        {
+            //　若状态机在运行，发送状态改变信号
+            emit unmasking();
+        }
+        else
+        {
+            // 若状态机没在运行，则可直接更改初始化状态
+            m_stateMachine->setInitialState(m_unMaskState);
+        }
+    }
+}
+
+bool KSScreensaver::eventFilter(QObject *watched, QEvent *event)
+{
+    if (watched == m_parentWidget)
+    {
+        if (event->type() == QEvent::Resize)
+        {
+            //　父窗口更改大小，该窗口更新大小
+            adjustGeometry(dynamic_cast<QResizeEvent *>(event)->size());
+        }
+    }
+    return QObject::eventFilter(watched, event);
+}
+
+void KSScreensaver::init()
+{
+    // 背景透明
+    setAttribute(Qt::WA_TranslucentBackground);
+    setMouseTracking(true);
+
+    // 初始化图形效果
+    initGraphicsEffect();
+
+    // 安装状态机
+    setupStateMachine();
+
+    // 开始更新时间
+    startUpdateTimeDateTimer();
+
+    // 给父控件安装事件过滤器,过滤窗口大小改变事件,更新大小
+    if (m_parentWidget != nullptr)
+    {
+        m_parentWidget->installEventFilter(this);
+        // 更新位置时会更新状态机中的状态属性,必须在初始化完状态机之后再进行
+        adjustGeometry(m_parentWidget->size());
+    }
+}
+
 void KSScreensaver::changeEvent(QEvent *event)
 {
     if ((event->type() == QEvent::ParentChange) &&
         (parentWidget() != m_parentWidget))
     {
-        if(m_parentWidget != nullptr)
+        // 父窗口更改,删除掉之前的事件过滤器
+        if (m_parentWidget != nullptr)
         {
             m_parentWidget->removeEventFilter(this);
         }
 
         m_parentWidget = parentWidget();
 
+        // 给新的父窗口安装事件过滤器
         if (m_parentWidget != nullptr)
         {
             m_parentWidget->installEventFilter(this);
@@ -73,7 +138,7 @@ void KSScreensaver::changeEvent(QEvent *event)
 void KSScreensaver::adjustGeometry(const QSize &size)
 {
     KLOG_DEBUG() << "adjust geometry:" << size;
-    QRect rect(0, m_isActive ? 0 : -size.height(), size.width(), size.height());
+    QRect rect(0, m_masked ? 0 : -size.height(), size.width(), size.height());
     setGeometry(rect);
     updateStateProperty();
 }
@@ -90,54 +155,42 @@ void KSScreensaver::initGraphicsEffect()
 void KSScreensaver::setupStateMachine()
 {
     KLOG_DEBUG() << "setup state machine...";
+
     // 初始化状态机
     m_stateMachine = new QStateMachine(this);
     m_stateMachine->setAnimated(m_enableAnimation);
-    m_activeState = new QState(m_stateMachine);
-    m_unactiveState = new QState(m_stateMachine);
+    m_maskState = new QState(m_stateMachine);
+    m_unMaskState = new QState(m_stateMachine);
 
     // 激活状态属性设置
-    m_activeState->assignProperty(m_opacityEffect,"opacity",QVariant(1.0));
-    m_activeState->assignProperty(this,"geometry",QRect(0,0,this->width(),this->height()));
-    auto toInactiveTransition = m_activeState->addTransition(this,SIGNAL(inactivation()),m_unactiveState);
+    m_maskState->assignProperty(m_opacityEffect, "opacity", QVariant(1.0));
+    m_maskState->assignProperty(this, "geometry", QRect(0, 0, this->width(), this->height()));
+    auto toInactiveTransition = m_maskState->addTransition(this, SIGNAL(unmasking()), m_unMaskState);
 
     auto inActiveAnimationGroup = new QParallelAnimationGroup(m_stateMachine);
     toInactiveTransition->addAnimation(inActiveAnimationGroup);
 
-    auto inActiveOpacityAnimation = new QPropertyAnimation(m_opacityEffect,"opacity");
+    auto inActiveOpacityAnimation = new QPropertyAnimation(m_opacityEffect, "opacity");
     inActiveOpacityAnimation->setDuration(300);
     inActiveOpacityAnimation->setEasingCurve(QEasingCurve::InCubic);
     inActiveAnimationGroup->addAnimation(inActiveOpacityAnimation);
 
-    auto inActiveGeometryAnimation = new QPropertyAnimation(this,"geometry");
+    auto inActiveGeometryAnimation = new QPropertyAnimation(this, "geometry");
     inActiveGeometryAnimation->setDuration(400);
     inActiveGeometryAnimation->setEasingCurve(QEasingCurve::InCubic);
     inActiveAnimationGroup->addAnimation(inActiveGeometryAnimation);
 
     // 非激活状态属性设置
-    m_unactiveState->assignProperty(m_opacityEffect,"opacity",QVariant(0));
-    m_unactiveState->assignProperty(this,"geometry",QRect(0,-height(),this->width(),this->height()));
-    auto toActiveTransition = m_unactiveState->addTransition(this,SIGNAL(activation()),m_activeState);
-    toActiveTransition->addAnimation(new QPropertyAnimation(m_opacityEffect,"opacity"));
-    toActiveTransition->addAnimation(new QPropertyAnimation(this,"geometry"));
+    m_unMaskState->assignProperty(m_opacityEffect, "opacity", QVariant(0));
+    m_unMaskState->assignProperty(this, "geometry", QRect(0, -height(), this->width(), this->height()));
+    auto toActiveTransition = m_unMaskState->addTransition(this, SIGNAL(masking()), m_maskState);
+    toActiveTransition->addAnimation(new QPropertyAnimation(m_opacityEffect, "opacity"));
+    toActiveTransition->addAnimation(new QPropertyAnimation(this, "geometry"));
 
     // 初始化状态默认为激活
-    m_stateMachine->setInitialState(m_activeState);
+    m_stateMachine->setInitialState(m_maskState);
     // NOTE:状态机内部实现设置启动的话，会调用QMetaObject::invokeMethod,Qt::QueuedConnection,该任务会加入处理队列,状态可能不会即使生效
     m_stateMachine->setRunning(true);
-}
-
-bool KSScreensaver::eventFilter(QObject *watched, QEvent *event)
-{
-    if (watched == m_parentWidget)
-    {
-        if(event->type() == QEvent::Resize)
-        {
-            //　父窗口更改大小，该窗口更新大小
-            adjustGeometry(dynamic_cast<QResizeEvent*>(event)->size());
-        }
-    }
-    return QObject::eventFilter(watched, event);
 }
 
 void KSScreensaver::updateStateProperty()
@@ -145,45 +198,24 @@ void KSScreensaver::updateStateProperty()
     KLOG_DEBUG() << "screensaver update state property:" << this->geometry();
     // 更新状态中对应的属性值
     QSize geoSize = this->geometry().size();
-    m_unactiveState->assignProperty(this,"geometry",QRect(0,-geoSize.height(),geoSize.width(),geoSize.height()));
-    m_activeState->assignProperty(this,"geometry",QRect(0,0,geoSize.width(),geoSize.height()));
-}
-
-bool KSScreensaver::active()
-{
-    return m_isActive;
-}
-
-void KSScreensaver::setActive(bool active)
-{
-    if(active == m_isActive)
-    {
-        return;
-    }
-
-    m_isActive = active;
-
-    if(m_isActive)
-    {
-//        KLOG_DEBUG() << "inactive:"
-        emit activation();
-    }
-    else
-    {
-        if(m_stateMachine->isRunning())
-        {
-            //　若状态机在运行，发送状态改变信号
-            emit inactivation();
-        }
-        else
-        {
-            // 若状态机没在运行，则可直接更改初始化状态
-            m_stateMachine->setInitialState(m_unactiveState);
-        }
-    }
+    m_unMaskState->assignProperty(this, "geometry", QRect(0, -geoSize.height(), geoSize.width(), geoSize.height()));
+    m_maskState->assignProperty(this, "geometry", QRect(0, 0, geoSize.width(), geoSize.height()));
 }
 
 void KSScreensaver::resizeEvent(QResizeEvent *event)
 {
     QWidget::resizeEvent(event);
+}
+
+void KSScreensaver::startUpdateTimeDateTimer()
+{
+    QDateTime dateTime = QDateTime::currentDateTime();
+    QString time = dateTime.toString("hh:mm");
+    QString date = dateTime.toString(tr("MM-dd dddd"));
+    ui->label_time->setText(time);
+    ui->label_date->setText(date);
+
+    QTime curTime = dateTime.time();
+    int nextUpdateSecond = 60 - curTime.second();
+    QTimer::singleShot(nextUpdateSecond*1000,this,&KSScreensaver::startUpdateTimeDateTimer);
 }

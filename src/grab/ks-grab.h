@@ -22,6 +22,9 @@
 #include <QWindow>
 
 class KSInvisibleWindow;
+/**
+ * @brief 封装的X11输入设备抓取接口
+ */
 class KSGrab
 {
 public:

@@ -13,7 +13,7 @@
 
 class LogindSessionMonitor;
 /**
- * 对外提供DBus接口
+ * @brief 对外提供DBus接口
  * 对内提供接口整合设置屏保状态和空闲状态
  */
 class KSListener: public QObject, protected QDBusContext

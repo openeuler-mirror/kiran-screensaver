@@ -11,6 +11,9 @@
 ///由org.gnome.SessionManager.Presence.xml生成而来
 #include "gsm_presence_proxy.h"
 
+/**
+ * @brief 空闲监控通过mate-session
+ */
 class KSIdleWatcherMate : public KSIdleWatcher
 {
     Q_OBJECT
@@ -50,22 +53,21 @@ private:
     //是否启用
     bool m_enabled = false;
     //延迟通知空闲超时时间
-    uint64_t m_delayIdleTimeout = 1000;
+    uint64_t m_delayIdleTimeout = 2000;
 
-    ///---状态---
-    //激活状态
+    //空闲检测是否开启
     bool m_idleDetectionActive = false;
-    //空闲状态
+    //空闲状态是否开启
     bool m_idle = false;
     //空闲预告标志
     bool m_idleNotice = false;
 
-    //延迟通知空闲定时器
+    // 延迟通知空闲定时器
     int m_idleTimerID = 0;
-    //定时禁用xscreensaver定时器
+    // 定时禁用xscreensaver定时器
     int m_disableXScreenSaverID = 0;
 
-    //来自于mate-session presence status-message
+    // 来自于mate-session presence status-message
     QString m_statusMsg;
 };
 

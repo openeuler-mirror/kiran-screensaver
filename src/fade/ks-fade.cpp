@@ -10,7 +10,7 @@
 #include <QTimerEvent>
 
 // 淡出时间 ms
-#define FADE_TIMEOUT 1000
+#define FADE_TIMEOUT 2000
 
 // 淡出动画的帧数
 #define FADE_STEP_REP_SECOND 60
