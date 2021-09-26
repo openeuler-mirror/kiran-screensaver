@@ -44,7 +44,7 @@ public:
     void setScreen(QScreen* screen);
 
     // 设置显示背景图
-    void setBackground(const QPixmap& pixmap);
+    void setBackground(const QImage& background);
 
 private:
     void handleScreenGeometryChanged(const QRect& geometry);
@@ -62,9 +62,9 @@ private:
     qreal m_blurOpacity = 0;
     QPropertyAnimation* m_blurAnimation = nullptr;
 
-    QPixmap m_background;
-    QPixmap m_scaledBackground;
-    QPixmap m_blurScaledBackground;
+    QImage m_background;
+    QImage m_scaledBackground;
+    QImage m_blurScaledBackground;
 };
 
 #endif  //KIRAN_SCREENSAVER_SRC_VIEW_KS_WINDOW_H_

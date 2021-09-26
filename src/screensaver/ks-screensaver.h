@@ -25,6 +25,7 @@ class KSScreensaver;
 QT_END_NAMESPACE
 
 class KiranGraphicsGlowEffect;
+class QGraphicsOpacityEffect;
 class QStateMachine;
 class QState;
 class KSScreensaver : public QWidget
@@ -39,22 +40,18 @@ public:
     bool maskState();
     void setMaskState(bool maskState);
 
-    bool eventFilter(QObject* watched, QEvent* event) override;
-
 private:
     void init();
     void initGraphicsEffect();
     void setupStateMachine();
-    void adjustGeometry(const QSize& size);
     void updateStateProperty();
-
-protected:
-    void resizeEvent(QResizeEvent* event) override;
-    void changeEvent(QEvent *event) override;
 
 signals:
     void masking();
     void unmasking();
+
+protected:
+    void resizeEvent(QResizeEvent* event) override;
 
 private slots:
     void startUpdateTimeDateTimer();
@@ -63,7 +60,6 @@ private:
     Ui::KSScreensaver *ui;
     bool m_masked = true;
     bool m_enableAnimation = false;
-    QWidget* m_parentWidget = nullptr;
     QStateMachine* m_stateMachine = nullptr;
     QState* m_maskState = nullptr;
     QState* m_unMaskState = nullptr;

@@ -22,28 +22,31 @@
 
 #include <QMap>
 #include <QObject>
-#include <QPixmap>
+#include <QImage>
+#include "ks-interface.h"
 
 class KSWindow;
 class QScreen;
 class QGSettings;
 class KSFade;
 class KSScreensaver;
-class KSLockerDemo;
 class QStateMachine;
 class KSPrefs;
+class KSPluginInterface;
+class KSLockerInterface;
 
 //TODO: 还未处理解锁框跟着指针移动的情况
 //TODO: 暂时只在主屏上显示和模糊
-//TODO: 只显示屏保不显示锁定
-class KSScreenManager : public QObject
+class KSScreenManager : public QObject,public KSInterface
 {
     Q_OBJECT
 public:
-    KSScreenManager(KSPrefs* prefs,
-                    KSFade* fade,
+    KSScreenManager(KSFade* fade,
                     QObject* parent = nullptr);
     ~KSScreenManager();
+
+    bool init();
+    void authenticationPassed() override;
 
     bool eventFilter(QObject* watched, QEvent* event) override;
 
@@ -53,17 +56,21 @@ public:
     bool getActive();
 
     // 锁定框激活状态 (标志锁定框时候被创建)
-    void setLockActive(bool lockActive);
+    bool setLockActive(bool lockActive);
     bool getLockActive() const;
 
     // 锁定框是否可见
     void setLockVisible(bool lockVisible);
-    bool getLockVisible(bool lockVisible);
+    bool getLockVisible();
 
 signals:
     void sigReqDeactivated();
 
 private:
+    bool eventFilterActivate(QObject* watched,QEvent* event);
+    bool eventFilterCurrentWindowResize(QObject* watched,QEvent* event);
+
+    void updateCurrentSubWindowGeometry(QSize size);
     void moveContentToWindow(KSWindow* window);
 
     bool activate();
@@ -96,7 +103,7 @@ private:
     bool m_lockerVisible = false;
 
     // 窗口背景缓存
-    QPixmap m_background;
+    QImage m_background;
     // 屏幕与背景容器窗口映射
     QMap<QScreen*, KSWindow*> m_windowMap;
     // 当前显示内容的背景窗口
@@ -104,7 +111,8 @@ private:
     // 屏保界面
     KSScreensaver* m_screensaver;
     // 解锁框界面
-    KSLockerDemo* m_lockerDemo;
+    KSPluginInterface* m_lockerPluginInterface;
+    KSLockerInterface* m_lockerInterface;
 };
 
 #endif  //KIRAN_SCREENSAVER_SRC_SCREEN_MANAGER_KS_SCREEN_MANAGER_H_

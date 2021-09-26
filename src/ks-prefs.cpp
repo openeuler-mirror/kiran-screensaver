@@ -4,6 +4,8 @@
 
 #include "ks-prefs.h"
 #include <qt5-log-i.h>
+#include <QMutex>
+#include <QScopedPointer>
 
 #define RETURN_IF_SAME(value_1, value_2)  \
     {                                     \
@@ -19,6 +21,7 @@
 #define KEY_CAN_LOGOUT                  "can-logout"
 #define KEY_CAN_USER_SWITCH             "can-user-switch"
 #define KEY_ENABLE_ANIMATION            "enable-animation"
+#define KEY_SCREENSAVER_LOCKER          "screensaver-locker"
 
 KSPrefs::KSPrefs(QObject* parent)
     : QObject(parent)
@@ -31,6 +34,11 @@ KSPrefs::~KSPrefs()
 
 bool KSPrefs::init()
 {
+    if(isInited)
+    {
+        return true;
+    }
+
     delete m_screensaverSettings;
     m_screensaverSettings = new QGSettings(SCHEMA_KIRAN_SCREENSAVER, "", this);
     if (!connect(m_screensaverSettings, &QGSettings::changed, this, &KSPrefs::handleGSettingsChanged))
@@ -42,6 +50,7 @@ bool KSPrefs::init()
     m_canLogout = m_screensaverSettings->get(KEY_CAN_LOGOUT).toBool();
     m_canUserSwitch = m_screensaverSettings->get(KEY_CAN_USER_SWITCH).toBool();
     m_enableAnimation = m_screensaverSettings->get(KEY_ENABLE_ANIMATION).toBool();
+    m_lockerPluginPath = m_screensaverSettings->get(KEY_SCREENSAVER_LOCKER).toString();
 
     ///输出设置项
     KLOG_DEBUG() << "load kiran-screensaver prefs:";
@@ -49,7 +58,9 @@ bool KSPrefs::init()
     KLOG_DEBUG() << "\t" KEY_CAN_LOGOUT << m_canLogout;
     KLOG_DEBUG() << "\t" KEY_CAN_USER_SWITCH << m_canUserSwitch;
     KLOG_DEBUG() << "\t" KEY_ENABLE_ANIMATION << m_enableAnimation;
+    KLOG_DEBUG() << "\t" KEY_SCREENSAVER_LOCKER << m_lockerPluginPath;
 
+    isInited = true;
     return true;
 }
 
@@ -115,4 +126,26 @@ void KSPrefs::setEnableAnimation(bool enableAnimation)
     RETURN_IF_SAME(m_enableAnimation,enableAnimation);
     m_enableAnimation = enableAnimation;
     m_screensaverSettings->set(KEY_ENABLE_ANIMATION,m_enableAnimation);
+}
+
+KSPrefs* KSPrefs::getInstance()
+{
+    static QMutex mutex;
+    static QScopedPointer<KSPrefs> pInst;
+
+    if (Q_UNLIKELY(!pInst))
+    {
+        QMutexLocker locker(&mutex);
+        if (pInst.isNull())
+        {
+            pInst.reset(new KSPrefs());
+        }
+    }
+
+    return pInst.data();
+}
+
+QString KSPrefs::getLockerPluginPath() const
+{
+    return m_lockerPluginPath;
 }

@@ -16,30 +16,22 @@
 #define __KS_PLUGIN_I_H__
 
 #include <QObject>
-#include "ks-interface.h"
 #include "ks-locker-interface.h"
-#include "ks-screensaver-interface.h"
+#include "ks-interface.h"
 
-//TODO:暂定,先完成锁屏和屏保,再考虑抽象成接口
-class KSPluginInterface : public QObject
+class KSPluginInterface
 {
 public:
-    enum LockerOptions{
-        LO_ENABLE_LOGOUT,
-        LO_ENABLE_SWITCH
-    };
-    Q_FLAG(LockerOptions)
-
     virtual ~KSPluginInterface() = default;
 
-    virtual int init() = 0;
+    virtual int init(KSInterface* ksInterface) = 0;
     virtual void uninit() = 0;
 
     // 获取解锁窗口
-    QWidget* createLockerWidget(KsLockerInterface* interface,LockerOptions options) = 0;
+    virtual KSLockerInterface* createLocker() = 0;
 
     // 获取屏保窗口
-    QWidget* createScreenSaverWidget()
+    //QWidget* createScreenSaverWidget()
 };
 
 #define KSPluginInterface_iid "com.kylinsec.Kiran.KSPluginInterface/1.0"

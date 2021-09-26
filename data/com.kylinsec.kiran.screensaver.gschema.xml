@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schemalist>
     <schema id="com.kylinsec.kiran.screensaver" path="/com/kylinsec/kiran/screensaver/">
+        <key name="screensaver-locker" type="s">
+            <default>"/usr/lib64/kiran-screensaver/libkiran-screensaver-dialog.so"</default>
+        </key>
+
         <key name="idle-activation-lock" type="b">
             <default>true</default>
             <description>空闲时是否锁定</description>

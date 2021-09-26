@@ -49,7 +49,7 @@ KSManager::~KSManager()
 
 bool KSManager::init()
 {
-    m_prefs = new KSPrefs;
+    m_prefs = KSPrefs::getInstance();
     if(!m_prefs->init())
     {
         KLOG_ERROR() << "kiran screensaver prefs init failed!";
@@ -61,7 +61,9 @@ bool KSManager::init()
     m_fade = new KSFade;
 
     // 屏幕管理类
-    m_screenManager = new KSScreenManager(m_prefs, m_fade);
+    m_screenManager = new KSScreenManager(m_fade);
+    m_screenManager->init();
+
     connect(m_screenManager,&KSScreenManager::sigReqDeactivated,[this](){
         m_listener->setActiveStatus(false);
     });

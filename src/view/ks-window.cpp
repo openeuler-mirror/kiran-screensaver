@@ -43,15 +43,19 @@ KSWindow::KSWindow(bool enableAnimation, QScreen *screen)
 
 {
     setScreen(screen);
-    setWindowFlag(Qt::BypassWindowManagerHint);
+    setWindowFlags(Qt::BypassWindowManagerHint|Qt::FramelessWindowHint|Qt::CustomizeWindowHint|Qt::NoDropShadowWindowHint);
 
     if (m_enableAnimation)
     {
         m_blurAnimation = new QPropertyAnimation(this);
         m_blurAnimation->setTargetObject(this);
         m_blurAnimation->setPropertyName("blurOpacity");
-        m_blurAnimation->setStartValue(0);
-        m_blurAnimation->setEndValue(1);
+        m_blurAnimation->setStartValue(0.0);
+        /**
+         *FIXME:由于qt_blurImage模糊半径过大，将会导致左侧以及下方会透明，直接不透明绘制出将会存在黑边，
+         *所以显示模糊背景时，将留点透明度，显示下层未被模糊的背景
+         */
+        m_blurAnimation->setEndValue(0.9);
         m_blurAnimation->setDuration(600);
     }
 }
@@ -92,9 +96,9 @@ void KSWindow::handleScreenGeometryChanged(const QRect &geometry)
     setGeometry(QRect(geometry.topLeft().x(), geometry.topLeft().y(), geometry.width(), geometry.height()));
 }
 
-void KSWindow::setBackground(const QPixmap &pixmap)
+void KSWindow::setBackground(const QImage &background)
 {
-    m_background = pixmap;
+    m_background = background;
 }
 
 void KSWindow::resizeEvent(QResizeEvent *event)
@@ -108,17 +112,17 @@ void KSWindow::resizeEvent(QResizeEvent *event)
         qreal factor = qMax(minSize.width() / (double)imageSize.width(),
                             minSize.height() / (double)imageSize.height());
 
-        QSize newPixbufSize;
-        newPixbufSize.setWidth(qFloor(imageSize.width() * factor + 0.5));
-        newPixbufSize.setHeight(qFloor(imageSize.height() * factor + 0.5));
+        QSize newImageSize;
+        newImageSize.setWidth(qFloor(imageSize.width() * factor + 0.5));
+        newImageSize.setHeight(qFloor(imageSize.height() * factor + 0.5));
 
-        QPixmap scaledPixmap = m_background.scaled(newPixbufSize, Qt::KeepAspectRatio, Qt::FastTransformation);
+        QImage backgroundScaled = m_background.scaled(newImageSize, Qt::KeepAspectRatio, Qt::FastTransformation);
 
-        QImage scaledBlurImage = scaledPixmap.toImage();
-        qt_blurImage(scaledBlurImage, 35.0, false);
+        QImage backgroundBlur =  backgroundScaled;
+        qt_blurImage(backgroundBlur,35,false);
 
-        m_scaledBackground = scaledPixmap;
-        m_blurScaledBackground = QPixmap::fromImage(scaledBlurImage);
+        m_scaledBackground = backgroundScaled;
+        m_blurScaledBackground = backgroundBlur;
     }
     QWidget::resizeEvent(event);
 }
@@ -133,24 +137,18 @@ void KSWindow::paintEvent(QPaintEvent *event)
     {
         QSize imageSize = m_scaledBackground.size();
         QSize windowSize = size();
-        QRect drawTargetRect((imageSize.width() - windowSize.width()) / -2,
-                             (imageSize.height() - windowSize.height()) / -2,
-                             imageSize.width(),
-                             imageSize.height());
+        QPointF drawPoint((imageSize.width() - windowSize.width()) / -2.0,
+                             (imageSize.height() - windowSize.height()) / -2.0);
 
-        if (m_blurOpacity != 1)
-        {
-            painter.drawPixmap(drawTargetRect, m_scaledBackground, m_scaledBackground.rect());
-        }
+        painter.drawImage(drawPoint,m_scaledBackground);
 
         if (m_blurOpacity > 0)
         {
-            painter.save();
             painter.setOpacity(m_blurOpacity);
-            painter.drawPixmap(drawTargetRect, m_blurScaledBackground, m_blurScaledBackground.rect());
-            painter.restore();
+            painter.drawImage(drawPoint,m_blurScaledBackground);
         }
     }
+
     QWidget::paintEvent(event);
 }
 

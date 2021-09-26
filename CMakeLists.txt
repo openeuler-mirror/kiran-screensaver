@@ -46,11 +46,13 @@ foreach(interface_item ${GSM_PRESENCE_SRC})
 endforeach()
 
 file(GLOB_RECURSE SRC "src/*.cpp" "src/*.h")
+file(GLOB DEVEL_HEADER "include/*.h")
 
 add_executable(${PROJECT_NAME}
         ${DBUS_ADAPTOR_SRC}
         ${GSM_PRESENCE_SRC}
         ${SRC}
+        ${DEVEL_HEADER}
         resources/kiran-screensaver.qrc)
 
 target_include_directories(${PROJECT_NAME} PRIVATE
@@ -64,6 +66,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
         src/view
         src/screensaver
         src/locker
+        include
 
         ${KIRAN_LOG_QT5_INCLUDE_DIRS}
         ${KIRANWIDGETS_QT5_INCLUDE_DIRS}
@@ -83,6 +86,6 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
         ${XCB_LIBRARIES}
         ${XCB_RANDR_LIBRARIES})
 
-#add_subdirectory(test)
-
-
+include(GNUInstallDirs)
+install(TARGETS ${PROJECT_NAME} DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
+install(FILES ${DEVEL_HEADER} DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}/kiran-screensaver)

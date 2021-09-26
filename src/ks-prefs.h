@@ -26,9 +26,13 @@
 class KSPrefs : public QObject
 {
     Q_OBJECT
+
 public:
-    KSPrefs(QObject* parent = nullptr);
+    static KSPrefs* getInstance();
     ~KSPrefs();
+
+private:
+    KSPrefs(QObject* parent = nullptr);
 
 public:
     bool init();
@@ -38,6 +42,8 @@ public:
     bool getCanLogout() const;
     bool getCanUserSwitch() const;
     bool getEnableAnimation() const;
+
+    QString getLockerPluginPath() const;
 
 private:
     void setIdleActivationLock(bool idleActivationLock);
@@ -49,11 +55,13 @@ private slots:
     void handleGSettingsChanged(const QString& key);
 
 private:
+    bool isInited = false;
     QGSettings* m_screensaverSettings = nullptr;
     bool m_idleActivationLock = false;        //空闲时是否锁定
     bool m_canLogout = false;                 //是否允许注销
-    bool m_canUserSwitch = false;             //是否允许用户切换
+    bool m_canUserSwitch = false;             //是否允许用户.切换
     bool m_enableAnimation = false;           //是否启用动画
+    QString m_lockerPluginPath;               //解锁框插件位置
 };
 
 #endif  //KIRAN_SCREENSAVER_SRC_KS_PREFS_H_

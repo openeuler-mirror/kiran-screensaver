@@ -14,6 +14,7 @@
 
 #include "ks-screensaver.h"
 #include "kiran-graphics-glow-effect.h"
+#include <QGraphicsOpacityEffect>
 #include "qt5-log-i.h"
 #include "ui_ks-screensaver.h"
 
@@ -29,7 +30,6 @@
 KSScreensaver::KSScreensaver(bool enableAnimation, QWidget *parent)
     : QWidget(parent),
       ui(new Ui::KSScreensaver),
-      m_parentWidget(parent),
       m_enableAnimation(enableAnimation)
 {
     ui->setupUi(this);
@@ -75,19 +75,6 @@ void KSScreensaver::setMaskState(bool maskState)
     }
 }
 
-bool KSScreensaver::eventFilter(QObject *watched, QEvent *event)
-{
-    if (watched == m_parentWidget)
-    {
-        if (event->type() == QEvent::Resize)
-        {
-            //　父窗口更改大小，该窗口更新大小
-            adjustGeometry(dynamic_cast<QResizeEvent *>(event)->size());
-        }
-    }
-    return QObject::eventFilter(watched, event);
-}
-
 void KSScreensaver::init()
 {
     // 背景透明
@@ -102,45 +89,6 @@ void KSScreensaver::init()
 
     // 开始更新时间
     startUpdateTimeDateTimer();
-
-    // 给父控件安装事件过滤器,过滤窗口大小改变事件,更新大小
-    if (m_parentWidget != nullptr)
-    {
-        m_parentWidget->installEventFilter(this);
-        // 更新位置时会更新状态机中的状态属性,必须在初始化完状态机之后再进行
-        adjustGeometry(m_parentWidget->size());
-    }
-}
-
-void KSScreensaver::changeEvent(QEvent *event)
-{
-    if ((event->type() == QEvent::ParentChange) &&
-        (parentWidget() != m_parentWidget))
-    {
-        // 父窗口更改,删除掉之前的事件过滤器
-        if (m_parentWidget != nullptr)
-        {
-            m_parentWidget->removeEventFilter(this);
-        }
-
-        m_parentWidget = parentWidget();
-
-        // 给新的父窗口安装事件过滤器
-        if (m_parentWidget != nullptr)
-        {
-            m_parentWidget->installEventFilter(this);
-            adjustGeometry(m_parentWidget->size());
-        }
-    }
-    QWidget::changeEvent(event);
-}
-
-void KSScreensaver::adjustGeometry(const QSize &size)
-{
-    KLOG_DEBUG() << "adjust geometry:" << size;
-    QRect rect(0, m_masked ? 0 : -size.height(), size.width(), size.height());
-    setGeometry(rect);
-    updateStateProperty();
 }
 
 void KSScreensaver::initGraphicsEffect()
@@ -202,11 +150,6 @@ void KSScreensaver::updateStateProperty()
     m_maskState->assignProperty(this, "geometry", QRect(0, 0, geoSize.width(), geoSize.height()));
 }
 
-void KSScreensaver::resizeEvent(QResizeEvent *event)
-{
-    QWidget::resizeEvent(event);
-}
-
 void KSScreensaver::startUpdateTimeDateTimer()
 {
     QDateTime dateTime = QDateTime::currentDateTime();
@@ -218,4 +161,11 @@ void KSScreensaver::startUpdateTimeDateTimer()
     QTime curTime = dateTime.time();
     int nextUpdateSecond = 60 - curTime.second();
     QTimer::singleShot(nextUpdateSecond*1000,this,&KSScreensaver::startUpdateTimeDateTimer);
+}
+
+void KSScreensaver::resizeEvent(QResizeEvent *event)
+{
+    dynamic_cast<QResizeEvent*>(event)->size();
+    updateStateProperty();
+    QWidget::resizeEvent(event);
 }
