@@ -66,6 +66,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
         src/view
         src/screensaver
         src/locker
+        src/widgets
         include
 
         ${KIRAN_LOG_QT5_INCLUDE_DIRS}

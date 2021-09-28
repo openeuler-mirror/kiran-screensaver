@@ -1,21 +1,16 @@
 /**
-  * @Copyright (C) 2020 ~ 2021 KylinSec Co., Ltd.
-  *
-  * Author:     liuxinhao <liuxinhao@kylinos.com.cn>
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published by
-  * the Free Software Foundation; either version 3 of the License, or
-  * (at your option) any later version.
-  *
-  * This program is distributed in the hope that it will be useful,
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  * GNU General Public License for more details.
-  *
-  * You should have received a copy of the GNU General Public License
-  * along with this program; If not, see <http: //www.gnu.org/licenses/>. 
-  */
+ * Copyright (c) 2020 ~ 2021 KylinSec Co., Ltd.
+ * kiran-screensaver is licensed under Mulan PSL v2.
+ * You can use this software according to the terms and conditions of the Mulan PSL v2.
+ * You may obtain a copy of Mulan PSL v2 at:
+ *          http://license.coscl.org.cn/MulanPSL2
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+ * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+ * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+ * See the Mulan PSL v2 for more details.
+ *
+ * Author:     liuxinhao <liuxinhao@kylinos.com.cn>
+ */
 #include "ks-screen-manager.h"
 #include "ks-fade.h"
 #include "ks-grab.h"
@@ -56,7 +51,7 @@ KSScreenManager::~KSScreenManager()
 
 bool KSScreenManager::init()
 {
-    //加载相关插件
+    //加载解锁框插件
     QString lockerPluginPath = KSPrefs::getInstance()->getLockerPluginPath();
     QPluginLoader pluginLoader(lockerPluginPath);
     if (!pluginLoader.load())
@@ -68,6 +63,7 @@ bool KSScreenManager::init()
     {
         KLOG_DEBUG() << "load" << pluginLoader.fileName() << "succeed!";
         KSPluginInterface *pluginInterface = qobject_cast<KSPluginInterface *>(pluginLoader.instance());
+        //传入kiran-screensaver提供相关接口进行插件初始化
         int iRes = pluginInterface->init(this);
         if (iRes != 0)
         {
@@ -97,7 +93,6 @@ bool KSScreenManager::setActive(bool active)
     }
 
     KLOG_DEBUG() << "set screen manager:" << (active ? "activate" : "inactivate") << ":" << (res ? "succeeded" : "failed");
-
     return res;
 }
 
@@ -175,18 +170,7 @@ void KSScreenManager::setLockVisible(bool lockVisible)
         m_lockerInterface->fadeOut();
     }
 
-    // 设置背景窗口模糊
-    for (auto iter = m_windowMap.begin(); iter != m_windowMap.end(); iter++)
-    {
-        if (m_lockerVisible && iter.value() == m_currentWindow)
-        {
-            iter.value()->setBlurBackground(true);
-        }
-        else
-        {
-            iter.value()->setBlurBackground(false);
-        }
-    }
+    setBackgroundWindowBlured(m_currentWindow);
 }
 
 bool KSScreenManager::getLockVisible()
@@ -231,6 +215,8 @@ void KSScreenManager::handleScreenRemoved(QScreen *screen)
 KSWindow *KSScreenManager::createWindowForScreen(QScreen *screen)
 {
     auto window = new KSWindow(m_enableAnimation, screen);
+    connect(window,&KSWindow::mouseEnter,this,&KSScreenManager::handleWindowMouseEnter);
+
     KLOG_DEBUG() << "create window for screen:" << window->objectName();
 
     window->setScreen(screen);
@@ -337,14 +323,18 @@ void KSScreenManager::destroyWindows()
 
 bool KSScreenManager::eventFilter(QObject *watched, QEvent *event)
 {
+    ///过滤全局事件，判断是否激活解锁框，或启用屏保盖住解锁框
     if (eventFilterActivate(watched, event))
     {
         return true;
     }
+
+    /// 过滤全局时间，判断窗口Resize事件，调整窗口大小
     if (eventFilterCurrentWindowResize(watched, event))
     {
         return true;
     }
+
     return QObject::eventFilter(watched, event);
 }
 
@@ -405,6 +395,8 @@ bool KSScreenManager::eventFilterCurrentWindowResize(QObject *watched, QEvent *e
 
 void KSScreenManager::moveContentToWindow(KSWindow *window)
 {
+    m_currentWindow = window;
+
     if (m_screensaver != nullptr)
     {
         m_screensaver->setParent(window);
@@ -418,7 +410,10 @@ void KSScreenManager::moveContentToWindow(KSWindow *window)
         m_lockerInterface->get_widget_ptr()->stackUnder(m_screensaver);
     }
 
-    m_currentWindow = window;
+    if(m_lockerVisible)
+    {
+        setBackgroundWindowBlured(m_currentWindow);
+    }
 
     if (m_currentWindow)
     {
@@ -430,6 +425,7 @@ void KSScreenManager::moveContentToWindow(KSWindow *window)
     {
         KSGrab::getInstance()->grabRoot(false);
     }
+
 }
 
 void KSScreenManager::authenticationPassed()
@@ -439,15 +435,36 @@ void KSScreenManager::authenticationPassed()
 
 void KSScreenManager::updateCurrentSubWindowGeometry(QSize size)
 {
-    QRect rect(0, 0, size.width(), size.height());
 
     if (m_lockerInterface != nullptr)
     {
-        m_lockerInterface->get_widget_ptr()->setGeometry(rect);
+        m_lockerInterface->get_widget_ptr()->resize(size);
     }
 
     if (m_screensaver != nullptr)
     {
-        m_screensaver->setGeometry(rect);
+        m_screensaver->resize(size);
+    }
+}
+
+void KSScreenManager::handleWindowMouseEnter()
+{
+    KSWindow* window = qobject_cast<KSWindow*>(sender());
+    moveContentToWindow(window);
+}
+
+void KSScreenManager::setBackgroundWindowBlured(KSWindow *window)
+{
+    // 设置背景窗口模糊
+    for (auto iter = m_windowMap.begin(); iter != m_windowMap.end(); iter++)
+    {
+        if (m_lockerVisible && iter.value() == window)
+        {
+            iter.value()->setBlurBackground(true);
+        }
+        else
+        {
+            iter.value()->setBlurBackground(false);
+        }
     }
 }

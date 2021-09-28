@@ -1,22 +1,16 @@
 /**
-  * @Copyright (C) 2020 ~ 2021 KylinSec Co., Ltd.
-  *
-  * Author:     liuxinhao <liuxinhao@kylinos.com.cn>
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published by
-  * the Free Software Foundation; either version 3 of the License, or
-  * (at your option) any later version.
-  *
-  * This program is distributed in the hope that it will be useful,
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  * GNU General Public License for more details.
-  *
-  * You should have received a copy of the GNU General Public License
-  * along with this program; If not, see <http: //www.gnu.org/licenses/>. 
-  */
-
+ * Copyright (c) 2020 ~ 2021 KylinSec Co., Ltd.
+ * kiran-screensaver is licensed under Mulan PSL v2.
+ * You can use this software according to the terms and conditions of the Mulan PSL v2.
+ * You may obtain a copy of Mulan PSL v2 at:
+ *          http://license.coscl.org.cn/MulanPSL2
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+ * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+ * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+ * See the Mulan PSL v2 for more details.
+ *
+ * Author:     liuxinhao <liuxinhao@kylinos.com.cn>
+ */
 #ifndef KIRAN_SCREENSAVER_SRC_SCREEN_MANAGER_KS_SCREEN_MANAGER_H_
 #define KIRAN_SCREENSAVER_SRC_SCREEN_MANAGER_KS_SCREEN_MANAGER_H_
 
@@ -35,8 +29,6 @@ class KSPrefs;
 class KSPluginInterface;
 class KSLockerInterface;
 
-//TODO: 还未处理解锁框跟着指针移动的情况
-//TODO: 暂时只在主屏上显示和模糊
 class KSScreenManager : public QObject,public KSInterface
 {
     Q_OBJECT
@@ -45,9 +37,15 @@ public:
                     QObject* parent = nullptr);
     ~KSScreenManager();
 
+    //　初始化加载相关插件
     bool init();
+
+    //　提供接口给解锁框插件调用,传达解锁框认证成功的消息
     void authenticationPassed() override;
 
+    // 全局事件过滤器
+    // 处理解锁框激活或非激活
+    // 处理窗口大小Resize事件
     bool eventFilter(QObject* watched, QEvent* event) override;
 
 public:
@@ -64,13 +62,18 @@ public:
     bool getLockVisible();
 
 signals:
+    // 向外发送deactivate请求
     void sigReqDeactivated();
 
 private:
+    // 事件过滤激活或非激活解锁框事件
     bool eventFilterActivate(QObject* watched,QEvent* event);
+    // 事件过滤当前窗口resize事件
     bool eventFilterCurrentWindowResize(QObject* watched,QEvent* event);
 
+    // 更新当前窗子窗口(屏保和解锁款)大小
     void updateCurrentSubWindowGeometry(QSize size);
+    // 移动屏保和解锁框到该窗口上
     void moveContentToWindow(KSWindow* window);
 
     bool activate();
@@ -80,9 +83,11 @@ private:
     bool deactivate();
     void destroyWindows();
 
+    void setBackgroundWindowBlured(KSWindow* window);
 private slots:
     void handleScreenAdded(QScreen* screen);
     void handleScreenRemoved(QScreen* screen);
+    void handleWindowMouseEnter();
 
 private:
     // kiran-screensaver配置项

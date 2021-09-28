@@ -46,6 +46,9 @@ public:
     // 设置显示背景图
     void setBackground(const QImage& background);
 
+signals:
+    void mouseEnter();
+
 private:
     void handleScreenGeometryChanged(const QRect& geometry);
 

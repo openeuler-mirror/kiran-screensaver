@@ -16,6 +16,7 @@
   * You should have received a copy of the GNU General Public License
   * along with this program; If not, see <http: //www.gnu.org/licenses/>.
   */
+
 #ifndef KIRAN_SCREENSAVER_SRC_GRAB_KS_GRAB_H_
 #define KIRAN_SCREENSAVER_SRC_GRAB_KS_GRAB_H_
 

@@ -11,7 +11,6 @@
  *
  * Author:     liuxinhao <liuxinhao@kylinos.com.cn>
  */
-
 #ifndef KIRAN_SCREENSAVER_SRC_KS_PREFS_H_
 #define KIRAN_SCREENSAVER_SRC_KS_PREFS_H_
 

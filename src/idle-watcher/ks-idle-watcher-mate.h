@@ -1,8 +1,15 @@
 /**
- * @file   ks-idle-watcher-mate.h
- * @biref  适用于mate桌面的空闲监控对象，负责监控桌面空闲状态相关信息
- * @author liuxinhao <liuxinhao@kylinos.com.cn>
- * @copyright (c) 2021 KylinSec. All rights reserved. 
+ * Copyright (c) 2020 ~ 2021 KylinSec Co., Ltd.
+ * kiran-screensaver is licensed under Mulan PSL v2.
+ * You can use this software according to the terms and conditions of the Mulan PSL v2.
+ * You may obtain a copy of Mulan PSL v2 at:
+ *          http://license.coscl.org.cn/MulanPSL2
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+ * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+ * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+ * See the Mulan PSL v2 for more details.
+ *
+ * Author:     liuxinhao <liuxinhao@kylinos.com.cn>
  */
 #ifndef KIRAN_SCREENSAVER_SRC_KS_IDLE_WATCHER_MATE_H_
 #define KIRAN_SCREENSAVER_SRC_KS_IDLE_WATCHER_MATE_H_

@@ -1,7 +1,16 @@
-//
-// Created by lxh on 2021/7/6.
-//
-
+/**
+ * Copyright (c) 2020 ~ 2021 KylinSec Co., Ltd.
+ * kiran-screensaver is licensed under Mulan PSL v2.
+ * You can use this software according to the terms and conditions of the Mulan PSL v2.
+ * You may obtain a copy of Mulan PSL v2 at:
+ *          http://license.coscl.org.cn/MulanPSL2
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+ * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+ * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+ * See the Mulan PSL v2 for more details.
+ *
+ * Author:     liuxinhao <liuxinhao@kylinos.com.cn>
+ */
 #include "logind-session-monitor.h"
 
 #include <qt5-log-i.h>
@@ -28,7 +37,7 @@ LogindSessionMonitor::~LogindSessionMonitor()
 
 bool LogindSessionMonitor::init()
 {
-    ///FIXME: 出现过从logind取出logind当前的session路径，报错未能找到该PID属于的session
+    ///FIXME: 偶发出现过从logind取出logind当前的session路径，报错未能找到该PID属于的session
     ///暂时未进行排查,是桌面环境哪个组件导致该问题发生
 
     //获取logind session dbus对象路径，用于监听dbus信号

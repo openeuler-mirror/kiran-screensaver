@@ -17,6 +17,7 @@
 #include <QGraphicsOpacityEffect>
 #include "qt5-log-i.h"
 #include "ui_ks-screensaver.h"
+#include "float-label.h"
 
 #include <QDateTime>
 #include <QParallelAnimationGroup>
@@ -80,6 +81,14 @@ void KSScreensaver::init()
     // 背景透明
     setAttribute(Qt::WA_TranslucentBackground);
     setMouseTracking(true);
+
+    //　屏保悬浮提示
+    m_floatingLabel = new FloatLabel(this);
+    m_floatingLabel->setAnchor(0.5,0.93);
+    m_floatingLabel->setFloatingParameter(FloatLabel::DIRECTION_UP,true,2600,24);
+    m_floatingLabel->setText("鼠标点击即可解锁");
+    m_floatingLabel->setPixmap(QPixmap(":/kiran-screensaver/images/arrow.svg"),QSize(16,16));
+    m_floatingLabel->start();
 
     // 初始化图形效果
     initGraphicsEffect();

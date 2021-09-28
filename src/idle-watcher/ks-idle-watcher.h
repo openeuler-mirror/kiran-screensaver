@@ -1,9 +1,17 @@
 /**
- * @file   ks-idle-watcher.h
- * @biref  监听Session DBus空闲状态抽象类
- * @author liuxinhao <liuxinhao@kylinos.com.cn>
- * @copyright (c) 2021 KylinSec. All rights reserved. 
+ * Copyright (c) 2020 ~ 2021 KylinSec Co., Ltd.
+ * kiran-screensaver is licensed under Mulan PSL v2.
+ * You can use this software according to the terms and conditions of the Mulan PSL v2.
+ * You may obtain a copy of Mulan PSL v2 at:
+ *          http://license.coscl.org.cn/MulanPSL2
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+ * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+ * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+ * See the Mulan PSL v2 for more details.
+ *
+ * Author:     liuxinhao <liuxinhao@kylinos.com.cn>
  */
+
 #ifndef KIRAN_SCREENSAVER_SRC_KS_IDLE_WATCHER_H_
 #define KIRAN_SCREENSAVER_SRC_KS_IDLE_WATCHER_H_
 
@@ -47,9 +55,9 @@ signals:
      * 空闲状态通知信号,使用Qt::DirectConnection进行连接，直接调用槽函数进行淡出操作
      * 由于需要槽函数改变信号发出的handled值表明是否处理完成，
      * 所以需指定Qt信号和槽函数的连接方式为Qt::DirectConnection,发出信号时直接调用槽函数。
-      * \param isEffect  是否有效，标志是否是处于空闲预告阶段
-      * \param handled   标志槽函数是否处理完成
-      */
+     * \param isEffect  是否有效，标志是否是处于空闲预告阶段
+     * \param handled   标志槽函数是否处理完成
+     */
     void idleNoticeChanged(bool isEffect, bool& handled);
 };
 

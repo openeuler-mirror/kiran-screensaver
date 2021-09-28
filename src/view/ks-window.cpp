@@ -154,6 +154,7 @@ void KSWindow::paintEvent(QPaintEvent *event)
 
 void KSWindow::enterEvent(QEvent *event)
 {
+    emit mouseEnter();
     QWidget::enterEvent(event);
 }
 
