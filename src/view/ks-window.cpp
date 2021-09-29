@@ -52,8 +52,9 @@ KSWindow::KSWindow(bool enableAnimation, QScreen *screen)
         m_blurAnimation->setPropertyName("blurOpacity");
         m_blurAnimation->setStartValue(0.0);
         /**
-         *FIXME:由于qt_blurImage模糊半径过大，将会导致左侧以及下方会透明，直接不透明绘制出将会存在黑边，
-         *所以显示模糊背景时，将留点透明度，显示下层未被模糊的背景
+         *FIXME:
+         *  由于qt_blurImage模糊半径过大，将会导致左侧以及下方会透明，直接不透明绘制出将会存在黑边，
+         *  所以显示模糊背景时，将留点透明度，显示下层未被模糊的背景
          */
         m_blurAnimation->setEndValue(0.9);
         m_blurAnimation->setDuration(600);

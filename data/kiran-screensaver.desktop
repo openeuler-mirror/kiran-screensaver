@@ -1,0 +1,14 @@
+[Desktop Entry]
+Type=Application
+Name=Screensaver
+Name[zh_CN]=屏幕保护程序
+Comment=Launch screensaver and locker program
+Comment[zh_CN]=运行屏幕保护及锁定程序
+Icon=preferences-desktop-screensaver
+Exec=kiran-screensaver
+OnlyShowIn=MATE;KIRAN
+NoDisplay=true
+
+X-MATE-Autostart-Phase=Application
+X-MATE-Autostart-Notify=true
+X-MATE-AutoRestart=true

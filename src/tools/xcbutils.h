@@ -20,13 +20,6 @@ namespace Xcb {
 
 typedef xcb_window_t WindowId;
 
-static void defineCursor(xcb_window_t window, xcb_cursor_t cursor);
-static void setInputFocus(xcb_window_t window, xcb_timestamp_t time,uint8_t revertTo = XCB_INPUT_FOCUS_POINTER_ROOT);
-static void moveWindow(xcb_window_t window, const QPoint &pos);
-static void moveWindow(xcb_window_t window, uint32_t x, uint32_t y);
-static void lowerWindow(xcb_window_t window);
-static void selectInput(xcb_window_t window, uint32_t events);
-
 xcb_connection_t *default_connection()
 {
     return QX11Info::connection();

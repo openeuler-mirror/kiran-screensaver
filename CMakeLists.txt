@@ -67,6 +67,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
         src/screensaver
         src/locker
         src/widgets
+
         include
 
         ${KIRAN_LOG_QT5_INCLUDE_DIRS}
@@ -88,5 +89,18 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
         ${XCB_RANDR_LIBRARIES})
 
 include(GNUInstallDirs)
-install(TARGETS ${PROJECT_NAME} DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
+set(SCREENSAVER_BIN_DIR ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
+set(DBUS_SERVICE_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/dbus-1/services)
+set(XDG_AUTO_START_DIR /etc/xdg/autostart)
+# 安装可执行文件
+install(TARGETS ${PROJECT_NAME} DESTINATION ${SCREENSAVER_BIN_DIR})
+# 安装开发头文件
 install(FILES ${DEVEL_HEADER} DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}/kiran-screensaver)
+# 安装DBus Service文件
+configure_file(data/org.mate.ScreenSaver.service.in ${CMAKE_BINARY_DIR}/org.mate.ScreenSaver.service @ONLY)
+install(FILES ${CMAKE_BINARY_DIR}/org.mate.ScreenSaver.service DESTINATION ${DBUS_SERVICE_INSTALL_DIR})
+
+configure_file(data/com.kylinsec.Kiran.ScreenSaver.service.in ${CMAKE_BINARY_DIR}/com.kylinsec.Kiran.ScreenSaver.service)
+install(FILES ${CMAKE_BINARY_DIR}/com.kylinsec.Kiran.ScreenSaver.service DESTINATION ${DBUS_SERVICE_INSTALL_DIR})
+# 安装Desktop用于自启动
+install(FILES data/kiran-screensaver.desktop DESTINATION ${XDG_AUTO_START_DIR})
