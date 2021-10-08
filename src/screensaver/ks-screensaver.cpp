@@ -60,9 +60,11 @@ void KSScreensaver::setMaskState(bool maskState)
     if (m_masked)
     {
         emit masking();
+        m_floatingLabel->start();
     }
     else
     {
+        m_floatingLabel->reset();
         if (m_stateMachine->isRunning())
         {
             //　若状态机在运行，发送状态改变信号
@@ -104,8 +106,9 @@ void KSScreensaver::initGraphicsEffect()
 {
     // 设置透明并且带有阴影(为了字体在白色背景下更清晰)
     m_opacityEffect = new KiranGraphicsGlowEffect(this);
-    m_opacityEffect->setBlurRadius(8);
-    m_opacityEffect->setDistance(0);
+    m_opacityEffect->setXOffset(2);
+    m_opacityEffect->setYOffset(2);
+    m_opacityEffect->setBlurRadius(2);
     this->setGraphicsEffect(m_opacityEffect);
 }
 
