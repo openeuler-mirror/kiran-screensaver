@@ -19,6 +19,7 @@
 #include "ks-prefs.h"
 #include "ks-window.h"
 #include "screensaver/ks-screensaver.h"
+#include "ks-animation-define.h"
 
 #include <qt5-log-i.h>
 #include <QApplication>
@@ -123,7 +124,8 @@ bool KSScreenManager::setLockActive(bool lockActive)
         {
             m_lockerInterface = m_lockerPluginInterface->createLocker();
             m_lockerInterface->setAnimationEnabled(m_enableAnimation);
-            m_lockerInterface->setAnimationDuration(1500, 50);
+            m_lockerInterface->setAnimationDelay(UNLOCK_DIALOG_FADE_IN_ANIMATION_DELAY_MS,UNLOCK_DIALOG_FADE_OUT_ANIMATION_DELAY_MS);
+            m_lockerInterface->setAnimationDuration(UNLOCK_DIALOG_FADE_IN_ANIMATION_DURATION_MS, UNLOCK_DIALOG_FADE_OUT_ANIMATION_DURATION_MS);
             moveContentToWindow(m_currentWindow);
         }
     }
@@ -161,13 +163,13 @@ void KSScreenManager::setLockVisible(bool lockVisible)
 
     if (m_lockerVisible)
     {
-        m_screensaver->setMaskState(false);
         m_lockerInterface->fadeIn();
+        m_screensaver->setMaskState(false);
     }
     else
     {
-        m_screensaver->setMaskState(true);
         m_lockerInterface->fadeOut();
+        m_screensaver->setMaskState(true);
     }
 
     setBackgroundWindowBlured(m_currentWindow);

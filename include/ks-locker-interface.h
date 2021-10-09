@@ -27,12 +27,18 @@ public:
 
     //设置是否开启动画
     virtual void setAnimationEnabled(bool enabled) = 0;
+    virtual void setAnimationDelay(int fadeInDelay,int fadeOutDelay) = 0;
     virtual void setAnimationDuration(int fadeInMs,int fadeOutMs) = 0;
 
     //淡入淡出选项
     virtual bool fadeVisible() = 0;
     virtual bool fadeIn() = 0;
     virtual bool fadeOut() = 0;
+
+    //解锁框相关配置项
+    // 切换用户按钮
+    virtual void setEnableSwitch(bool enable) = 0;
+    virtual bool enableSwitch() = 0;
 };
 
 #endif  //KIRAN_SCREENSAVER_INCLUDE_KS_LOCKER_INTERFACE_H_

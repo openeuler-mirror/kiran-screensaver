@@ -18,6 +18,7 @@
   */
 
 #include "ks-window.h"
+#include "ks-animation-define.h"
 
 #include <QBoxLayout>
 #include <QPainter>
@@ -26,6 +27,7 @@
 #include <QScreen>
 #include <QWindow>
 #include <QtMath>
+#include <QTimerEvent>
 
 #include <qt5-log-i.h>
 #include <QGraphicsBlurEffect>
@@ -43,7 +45,8 @@ KSWindow::KSWindow(bool enableAnimation, QScreen *screen)
 
 {
     setScreen(screen);
-    setWindowFlags(Qt::BypassWindowManagerHint|Qt::FramelessWindowHint|Qt::CustomizeWindowHint|Qt::NoDropShadowWindowHint);
+    setWindowFlags(Qt::BypassWindowManagerHint | Qt::FramelessWindowHint |
+                   Qt::CustomizeWindowHint | Qt::NoDropShadowWindowHint);
 
     if (m_enableAnimation)
     {
@@ -57,7 +60,6 @@ KSWindow::KSWindow(bool enableAnimation, QScreen *screen)
          *  所以显示模糊背景时，将留点透明度，显示下层未被模糊的背景
          */
         m_blurAnimation->setEndValue(0.9);
-        m_blurAnimation->setDuration(600);
     }
 }
 
@@ -119,8 +121,8 @@ void KSWindow::resizeEvent(QResizeEvent *event)
 
         QImage backgroundScaled = m_background.scaled(newImageSize, Qt::KeepAspectRatio, Qt::FastTransformation);
 
-        QImage backgroundBlur =  backgroundScaled;
-        qt_blurImage(backgroundBlur,35,false);
+        QImage backgroundBlur = backgroundScaled;
+        qt_blurImage(backgroundBlur, 35, false);
 
         m_scaledBackground = backgroundScaled;
         m_blurScaledBackground = backgroundBlur;
@@ -139,14 +141,14 @@ void KSWindow::paintEvent(QPaintEvent *event)
         QSize imageSize = m_scaledBackground.size();
         QSize windowSize = size();
         QPointF drawPoint((imageSize.width() - windowSize.width()) / -2.0,
-                             (imageSize.height() - windowSize.height()) / -2.0);
+                          (imageSize.height() - windowSize.height()) / -2.0);
 
-        painter.drawImage(drawPoint,m_scaledBackground);
+        painter.drawImage(drawPoint, m_scaledBackground);
 
         if (m_blurOpacity > 0)
         {
             painter.setOpacity(m_blurOpacity);
-            painter.drawImage(drawPoint,m_blurScaledBackground);
+            painter.drawImage(drawPoint, m_blurScaledBackground);
         }
     }
 
@@ -173,29 +175,24 @@ void KSWindow::setBlurOpacity(qreal blurOpacity)
 
 void KSWindow::setBlurBackground(bool blur)
 {
-    if(m_blurBackground == blur)
+    if (m_blurBackground == blur)
     {
         return;
     }
 
     m_blurBackground = blur;
 
-    if(m_enableAnimation)
+    if (m_enableAnimation)
     {
-        if(m_blurBackground)
+        if (m_animationDelayTimerID != 0)
         {
-            m_blurAnimation->start();
+            killTimer(m_animationDelayTimerID);
         }
-        else
-        {
-            m_blurAnimation->stop();
-            m_blurOpacity = 0;
-            update();
-        }
+        m_animationDelayTimerID = startTimer(m_blurBackground ? BACKGROUND_BLUR_ANIMATION_DELAY_MS : BACKGROUND_UNBLUR_ANIMATION_DELAY_MS);
     }
     else
     {
-        if(m_blurBackground)
+        if (m_blurBackground)
         {
             m_blurOpacity = 1;
         }
@@ -210,4 +207,18 @@ void KSWindow::setBlurBackground(bool blur)
 bool KSWindow::getBlurBackground()
 {
     return m_blurBackground;
+}
+
+void KSWindow::timerEvent(QTimerEvent *event)
+{
+    if(event->timerId() == m_animationDelayTimerID)
+    {
+        m_blurAnimation->setDirection(m_blurBackground?QAbstractAnimation::Forward:QAbstractAnimation::Backward);
+        m_blurAnimation->setDuration(m_blurBackground?BACKGROUND_BLUR_ANIMATION_DURATION_MS:BACKGROUND_UNBLUR_ANIMATION_DURATION_MS);
+        m_blurAnimation->start();
+
+        killTimer(m_animationDelayTimerID);
+        m_animationDelayTimerID = 0;
+    }
+    QObject::timerEvent(event);
 }

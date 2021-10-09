@@ -18,6 +18,7 @@
 #include "qt5-log-i.h"
 #include "ui_ks-screensaver.h"
 #include "float-label.h"
+#include "ks-animation-define.h"
 
 #include <QDateTime>
 #include <QParallelAnimationGroup>
@@ -92,13 +93,8 @@ void KSScreensaver::init()
     m_floatingLabel->setPixmap(QPixmap(":/kiran-screensaver/images/arrow.svg"),QSize(16,16));
     m_floatingLabel->start();
 
-    // 初始化图形效果
     initGraphicsEffect();
-
-    // 安装状态机
     setupStateMachine();
-
-    // 开始更新时间
     startUpdateTimeDateTimer();
 }
 
@@ -131,21 +127,30 @@ void KSScreensaver::setupStateMachine()
     toInactiveTransition->addAnimation(inActiveAnimationGroup);
 
     auto inActiveOpacityAnimation = new QPropertyAnimation(m_opacityEffect, "opacity");
-    inActiveOpacityAnimation->setDuration(300);
+    inActiveOpacityAnimation->setDuration(SCREENSAVER_UP_SLIP_ANIMATION_DURATION_MS);
     inActiveOpacityAnimation->setEasingCurve(QEasingCurve::InCubic);
     inActiveAnimationGroup->addAnimation(inActiveOpacityAnimation);
 
     auto inActiveGeometryAnimation = new QPropertyAnimation(this, "geometry");
-    inActiveGeometryAnimation->setDuration(400);
+    inActiveGeometryAnimation->setDuration(SCREENSAVER_UP_SLIP_ANIMATION_DURATION_MS);
     inActiveGeometryAnimation->setEasingCurve(QEasingCurve::InCubic);
     inActiveAnimationGroup->addAnimation(inActiveGeometryAnimation);
 
     // 非激活状态属性设置
     m_unMaskState->assignProperty(m_opacityEffect, "opacity", QVariant(0));
     m_unMaskState->assignProperty(this, "geometry", QRect(0, -height(), this->width(), this->height()));
+
     auto toActiveTransition = m_unMaskState->addTransition(this, SIGNAL(masking()), m_maskState);
-    toActiveTransition->addAnimation(new QPropertyAnimation(m_opacityEffect, "opacity"));
-    toActiveTransition->addAnimation(new QPropertyAnimation(this, "geometry"));
+
+    auto toActiveOpacityAnimation = new QPropertyAnimation(m_opacityEffect,"opacity");
+    toActiveOpacityAnimation->setDuration(SCREENSAVER_DOWN_SLIP_ANIMATION_DURATION_MS);
+    toActiveOpacityAnimation->setEasingCurve(QEasingCurve::OutCubic);
+    toActiveTransition->addAnimation(toActiveOpacityAnimation);
+
+    auto toActiveGeometryAnimation = new QPropertyAnimation(this,"geometry");
+    toActiveGeometryAnimation->setDuration(SCREENSAVER_DOWN_SLIP_ANIMATION_DURATION_MS);
+    toActiveGeometryAnimation->setEasingCurve(QEasingCurve::OutCubic);
+    toActiveTransition->addAnimation(toActiveGeometryAnimation);
 
     // 初始化状态默认为激活
     m_stateMachine->setInitialState(m_maskState);

@@ -21,6 +21,7 @@
 #define KIRAN_SCREENSAVER_SRC_VIEW_KS_WINDOW_H_
 
 #include <QWidget>
+#include <QTimer>
 
 class KSScreenSaver;
 class QPropertyAnimation;
@@ -56,8 +57,11 @@ protected:
     void resizeEvent(QResizeEvent* event) override;
     void paintEvent(QPaintEvent* event) override;
     void enterEvent(QEvent* event) override;
+    void timerEvent(QTimerEvent* event) override;
 
 private:
+    int m_animationDelayTimerID = 0;
+
     QScreen* m_screen = nullptr;
     bool m_enableAnimation = false;
 

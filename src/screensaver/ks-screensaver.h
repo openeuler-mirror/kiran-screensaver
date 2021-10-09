@@ -29,6 +29,7 @@ class QGraphicsOpacityEffect;
 class QStateMachine;
 class QState;
 class FloatLabel;
+
 class KSScreensaver : public QWidget
 {
     Q_OBJECT
@@ -60,11 +61,14 @@ private slots:
 private:
     Ui::KSScreensaver *ui;
     FloatLabel* m_floatingLabel = nullptr;
+
     bool m_masked = true;
     bool m_enableAnimation = false;
+
     QStateMachine* m_stateMachine = nullptr;
     QState* m_maskState = nullptr;
     QState* m_unMaskState = nullptr;
+
     KiranGraphicsGlowEffect* m_opacityEffect = nullptr;
 };
 
