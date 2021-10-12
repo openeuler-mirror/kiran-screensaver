@@ -126,6 +126,7 @@ bool KSScreenManager::setLockActive(bool lockActive)
             m_lockerInterface->setAnimationEnabled(m_enableAnimation);
             m_lockerInterface->setAnimationDelay(UNLOCK_DIALOG_FADE_IN_ANIMATION_DELAY_MS,UNLOCK_DIALOG_FADE_OUT_ANIMATION_DELAY_MS);
             m_lockerInterface->setAnimationDuration(UNLOCK_DIALOG_FADE_IN_ANIMATION_DURATION_MS, UNLOCK_DIALOG_FADE_OUT_ANIMATION_DURATION_MS);
+            m_lockerInterface->setEnableSwitch(m_prefs->getCanUserSwitch());
             moveContentToWindow(m_currentWindow);
         }
     }
@@ -137,7 +138,6 @@ bool KSScreenManager::setLockActive(bool lockActive)
     }
 
     m_lockActive = lockActive;
-
     return true;
 };
 

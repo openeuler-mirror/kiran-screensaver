@@ -19,6 +19,8 @@
 #include <QString>
 #include <QGSettings>
 
+//NOTE:暂时解锁框和屏保绑定，不开启空闲时是否锁定屏幕配置项
+
 /**
  * @brief: 提供kiran-screensaver相关配置项的获取与监控
  */
@@ -45,7 +47,7 @@ public:
     QString getLockerPluginPath() const;
 
 private:
-    void setIdleActivationLock(bool idleActivationLock);
+    //void setIdleActivationLock(bool idleActivationLock);
     void setCanLogout(bool canLogout);
     void setCanUserSwitch(bool canUserSwitch);
     void setEnableAnimation(bool enableAnimation);
@@ -56,7 +58,7 @@ private slots:
 private:
     bool isInited = false;
     QGSettings* m_screensaverSettings = nullptr;
-    bool m_idleActivationLock = false;        //空闲时是否锁定
+    bool m_idleActivationLock = true;        //空闲时是否锁定
     bool m_canLogout = false;                 //是否允许注销
     bool m_canUserSwitch = false;             //是否允许用户.切换
     bool m_enableAnimation = false;           //是否启用动画

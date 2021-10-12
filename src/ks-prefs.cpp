@@ -55,7 +55,7 @@ bool KSPrefs::init()
         KLOG_WARNING() << "can't connect screensaver settings changed!";
     }
 
-    m_idleActivationLock = m_screensaverSettings->get(KEY_IDLE_ACTIVATION_LOCK).toBool();
+    //m_idleActivationLock = m_screensaverSettings->get(KEY_IDLE_ACTIVATION_LOCK).toBool();
     m_canLogout = m_screensaverSettings->get(KEY_CAN_LOGOUT).toBool();
     m_canUserSwitch = m_screensaverSettings->get(KEY_CAN_USER_SWITCH).toBool();
     m_enableAnimation = m_screensaverSettings->get(KEY_ENABLE_ANIMATION).toBool();
@@ -63,7 +63,7 @@ bool KSPrefs::init()
 
     ///输出设置项
     KLOG_DEBUG() << "load kiran-screensaver prefs:";
-    KLOG_DEBUG() << "\t" KEY_IDLE_ACTIVATION_LOCK << m_idleActivationLock;
+    //KLOG_DEBUG() << "\t" KEY_IDLE_ACTIVATION_LOCK << m_idleActivationLock;
     KLOG_DEBUG() << "\t" KEY_CAN_LOGOUT << m_canLogout;
     KLOG_DEBUG() << "\t" KEY_CAN_USER_SWITCH << m_canUserSwitch;
     KLOG_DEBUG() << "\t" KEY_ENABLE_ANIMATION << m_enableAnimation;
@@ -88,12 +88,14 @@ bool KSPrefs::getCanUserSwitch() const
     return m_canUserSwitch;
 }
 
+/*
 void KSPrefs::setIdleActivationLock(bool idleActivationLock)
 {
     RETURN_IF_SAME(m_idleActivationLock, idleActivationLock);
     m_idleActivationLock = idleActivationLock;
     m_screensaverSettings->set(KEY_IDLE_ACTIVATION_LOCK, m_idleActivationLock);
 }
+*/
 
 void KSPrefs::setCanLogout(bool canLogout)
 {
@@ -112,7 +114,7 @@ void KSPrefs::setCanUserSwitch(bool canUserSwitch)
 void KSPrefs::handleGSettingsChanged(const QString& key)
 {
     const QMap<QString, bool*> boolKeyMap = {
-        {KEY_IDLE_ACTIVATION_LOCK, &m_idleActivationLock},
+        //{KEY_IDLE_ACTIVATION_LOCK, &m_idleActivationLock},
         {KEY_CAN_LOGOUT, &m_canLogout},
         {KEY_CAN_USER_SWITCH, &m_canUserSwitch},
         {KEY_ENABLE_ANIMATION,&m_enableAnimation}
