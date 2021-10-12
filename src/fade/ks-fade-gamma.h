@@ -11,8 +11,6 @@
  *
  * Author:     liuxinhao <liuxinhao@kylinos.com.cn>
  */
-
-
 #ifndef KIRAN_SCREENSAVER_SRC_FADE_KS_FADE_GAMMA_H_
 #define KIRAN_SCREENSAVER_SRC_FADE_KS_FADE_GAMMA_H_
 

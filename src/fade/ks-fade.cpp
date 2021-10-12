@@ -11,14 +11,13 @@
  *
  * Author:     liuxinhao <liuxinhao@kylinos.com.cn>
  */
-
-
 #include "ks-fade.h"
 #include "ks-fade-xrandr.h"
 #include "ks-fade-gamma.h"
+#include "ks-fade-interface.h"
 
-#include <qt5-log-i.h>
 #include <QTimerEvent>
+#include <qt5-log-i.h>
 
 // 淡出时间 ms
 #define FADE_TIMEOUT 2000

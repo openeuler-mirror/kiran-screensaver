@@ -140,7 +140,6 @@ bool KSManager::initIdleWatcher()
     connect(m_idleWatcher,&KSIdleWatcher::idleChanged,this, &KSManager::onWatcherIdleChanged,Qt::DirectConnection);
     connect(m_idleWatcher,&KSIdleWatcher::idleNoticeChanged,this, &KSManager::onWatcherIdleNoticeChanged,Qt::DirectConnection);
 
-    /// test
     m_idleWatcher->setEnabled(true);
     m_idleWatcher->setIdleDetectionActive(true);
 
@@ -187,6 +186,7 @@ void KSManager::onWatcherIdleNoticeChanged(bool isEffect, bool& handled)
         //抓取鼠标键盘输入输出（屏幕淡出时，可通过点击鼠标或敲击键盘取消，这个取消过程的相应不应该被传入桌面）,是否成功
         if( !m_grab->grabOffscreen(true) )
         {
+            KLOG_WARNING() << "grab pointer and keyboard offscreen failed!";
             return;
         }
 

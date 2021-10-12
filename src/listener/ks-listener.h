@@ -16,7 +16,6 @@
 
 #include <QObject>
 #include <QDBusContext>
-#include <QDebug>
 
 class LogindSessionMonitor;
 /**

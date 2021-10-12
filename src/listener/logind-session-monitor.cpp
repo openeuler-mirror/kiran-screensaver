@@ -17,8 +17,6 @@
 #include <QCoreApplication>
 #include <QDBusInterface>
 #include <QDBusReply>
-#include <sys/types.h>
-#include <unistd.h>
 
 static const QString LOGIND_SERVICE = "org.freedesktop.login1";
 static const QString LOGIND_PATH = "/org/freedesktop/login1";

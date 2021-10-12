@@ -20,6 +20,7 @@
 #include <QDBusConnectionInterface>
 #include <QDateTime>
 #include <QStringLiteral>
+#include <QDebug>
 
 #define NOT_SUPPORTED_METHOD                                        \
     {                                                               \

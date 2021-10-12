@@ -54,8 +54,6 @@ bool KSIdleWatcherMate::init()
         return false;
     }
 
-
-
     // 连接到SessionManager的DBus服务，处理会话状态改变
     delete m_presenceInterface;
     m_presenceInterface = nullptr;
@@ -170,7 +168,11 @@ void KSIdleWatcherMate::setStatus(uint status)
     if (isIdle)
     {
         // 设置空闲预告
-        setIdleNotice(true);
+        if( !setIdleNotice(true) )
+        {
+            return;
+        }
+
         // 开启空闲定时器
         m_idleTimerID = startTimer(m_delayIdleTimeout);
     }

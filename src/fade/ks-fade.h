@@ -16,8 +16,8 @@
 #define KIRAN_SCREENSAVER_SRC_KS_FADE_H_
 
 #include <QObject>
-#include "ks-fade-interface.h"
 
+class KSFadeInterface;
 /**
  * @brief: 提供屏幕淡出相关封装的接口
  */

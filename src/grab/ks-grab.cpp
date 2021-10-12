@@ -118,7 +118,7 @@ bool KSGrab::grabWindow(WId wid, bool grabPointer)
         if(!bRes)
         {
             auto iter = GrabStatusDescMap.find(reply->status);
-            KLOG_DEBUG() << "can't grab,grab status:" << reply->status << (iter->isEmpty()?"":iter.value());
+            KLOG_ERROR() << "can't grab pointer,grab status:" << reply->status << (iter->isEmpty()?"":iter.value());
             return false;
         }
     }
@@ -134,7 +134,7 @@ bool KSGrab::grabWindow(WId wid, bool grabPointer)
     if(!bRes && grabPointer)
     {
         auto iter = GrabStatusDescMap.find(reply->status);
-        KLOG_DEBUG() << "can't grab,grab status:" << reply->status << (iter->isEmpty()?"":iter.value());
+        KLOG_DEBUG() << "can't grab keyboard,grab status:" << reply->status << (iter->isEmpty()?"":iter.value());
         xcb_ungrab_pointer(QX11Info::connection(),XCB_TIME_CURRENT_TIME);
         return false;
     }
@@ -144,11 +144,13 @@ bool KSGrab::grabWindow(WId wid, bool grabPointer)
 
 bool KSGrab::grabRoot(bool grabPointer)
 {
+    KLOG_DEBUG() << "grab to root window";
     return grabWindow(QX11Info::appRootWindow(),grabPointer);
 }
 
 //NOTE:若抓取失败，可以考虑模拟出Esc按键，取消掉开始菜单的抓取
 bool KSGrab::grabOffscreen(bool grabPointer)
 {
+    KLOG_DEBUG() << "grab to offscreen window";
     return grabWindow(m_invisibleWindow->winId(),grabPointer);
 }

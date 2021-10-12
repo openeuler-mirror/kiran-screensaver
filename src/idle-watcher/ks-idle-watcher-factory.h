@@ -21,7 +21,6 @@ class KSIdleWatcherFactory
 {
 public:
     ~KSIdleWatcherFactory() = default;
-
 private:
     KSIdleWatcherFactory() = default;
 
