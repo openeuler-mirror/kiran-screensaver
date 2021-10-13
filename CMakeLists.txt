@@ -5,7 +5,7 @@ project(kiran-screensaver)
 set(CMAKE_CXX_STANDARD 11)
 
 find_package(PkgConfig REQUIRED)
-find_package(Qt5 COMPONENTS Core Gui Widgets DBus X11Extras REQUIRED)
+find_package(Qt5 COMPONENTS Core Gui Widgets DBus X11Extras LinguistTools REQUIRED)
 pkg_search_module(KIRAN_LOG_QT5 REQUIRED klog-qt5)
 pkg_search_module(KIRANWIDGETS_QT5 REQUIRED kiranwidgets-qt5)
 pkg_search_module(GSETTINGS_QT REQUIRED gsettings-qt)
@@ -47,12 +47,16 @@ endforeach()
 
 file(GLOB_RECURSE SRC "src/*.cpp" "src/*.h")
 file(GLOB DEVEL_HEADER "include/*.h")
+#翻译文件
+set( TS_FILES "translations/kiran-screensaver.zh_CN.ts" )
+qt5_create_translation( QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES} )
 
 add_executable(${PROJECT_NAME}
         ${DBUS_ADAPTOR_SRC}
         ${GSM_PRESENCE_SRC}
         ${SRC}
         ${DEVEL_HEADER}
+        ${QM_FILES}
         resources/kiran-screensaver.qrc)
 
 target_include_directories(${PROJECT_NAME} PRIVATE
@@ -89,18 +93,21 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
         ${XCB_RANDR_LIBRARIES})
 
 include(GNUInstallDirs)
+
 set(SCREENSAVER_BIN_DIR ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
 set(DBUS_SERVICE_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/dbus-1/services)
 set(XDG_AUTO_START_DIR /etc/xdg/autostart)
-# 安装可执行文件
-install(TARGETS ${PROJECT_NAME} DESTINATION ${SCREENSAVER_BIN_DIR})
-# 安装开发头文件
-install(FILES ${DEVEL_HEADER} DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}/kiran-screensaver)
-# 安装DBus Service文件
-configure_file(data/org.mate.ScreenSaver.service.in ${CMAKE_BINARY_DIR}/org.mate.ScreenSaver.service @ONLY)
-install(FILES ${CMAKE_BINARY_DIR}/org.mate.ScreenSaver.service DESTINATION ${DBUS_SERVICE_INSTALL_DIR})
+set(TRANSLATIONS_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/kiran-screensaver/translations/)
 
+configure_file(data/config.h.in ${CMAKE_BINARY_DIR}/config.h @ONLY)
+configure_file(data/org.mate.ScreenSaver.service.in ${CMAKE_BINARY_DIR}/org.mate.ScreenSaver.service @ONLY)
 configure_file(data/com.kylinsec.Kiran.ScreenSaver.service.in ${CMAKE_BINARY_DIR}/com.kylinsec.Kiran.ScreenSaver.service)
+
+install(TARGETS ${PROJECT_NAME} DESTINATION ${SCREENSAVER_BIN_DIR})
+install(FILES ${QM_FILES} DESTINATION ${TRANSLATIONS_INSTALL_DIR} )
+install(FILES ${DEVEL_HEADER} DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}/kiran-screensaver)
+install(FILES ${CMAKE_BINARY_DIR}/org.mate.ScreenSaver.service DESTINATION ${DBUS_SERVICE_INSTALL_DIR})
 install(FILES ${CMAKE_BINARY_DIR}/com.kylinsec.Kiran.ScreenSaver.service DESTINATION ${DBUS_SERVICE_INSTALL_DIR})
-# 安装Desktop用于自启动
 install(FILES data/kiran-screensaver.desktop DESTINATION ${XDG_AUTO_START_DIR})
+install(FILES data/kiran-screensaver DESTINATION /${CMAKE_INSTALL_SYSCONFDIR}/pam.d/ )
+install(FILES data/com.kylinsec.kiran.screensaver.gschema.xml DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/glib-2.0/schemas/ )

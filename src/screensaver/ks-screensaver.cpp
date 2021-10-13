@@ -89,7 +89,7 @@ void KSScreensaver::init()
     m_floatingLabel = new FloatLabel(this);
     m_floatingLabel->setAnchor(0.5,0.93);
     m_floatingLabel->setFloatingParameter(FloatLabel::DIRECTION_UP,true,2600,24);
-    m_floatingLabel->setText("鼠标点击即可解锁");
+    m_floatingLabel->setText(tr("Click to unlock"));
     m_floatingLabel->setPixmap(QPixmap(":/kiran-screensaver/images/arrow.svg"),QSize(16,16));
     m_floatingLabel->start();
 

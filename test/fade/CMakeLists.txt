@@ -31,6 +31,8 @@ target_link_libraries(${TARGET_NAME}
         ${XCB_RANDR_LIBRARIES})
 
 target_include_directories(${TARGET_NAME} PRIVATE
+        ../../src/tools/
+        ../../src/fade/
         ${KIRAN_LOG_QT5_INCLUDE_DIRS}
         ${XCB_LIBRARIES}
         ${XCB_RANDR_LIBRARIES})
