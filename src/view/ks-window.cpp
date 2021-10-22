@@ -133,7 +133,7 @@ void KSWindow::resizeEvent(QResizeEvent *event)
 void KSWindow::paintEvent(QPaintEvent *event)
 {
     QPainter painter(this);
-    painter.setRenderHint(QPainter::SmoothPixmapTransform);
+    painter.setRenderHints(QPainter::SmoothPixmapTransform|QPainter::Antialiasing);
 
     // 绘制背景
     if (!m_scaledBackground.isNull())
