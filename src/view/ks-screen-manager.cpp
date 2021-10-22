@@ -201,17 +201,7 @@ void KSScreenManager::handleScreenRemoved(QScreen *screen)
         return;
     }
 
-    auto iter = m_windowMap.find(screen);
-    if (iter != m_windowMap.end())
-    {
-        if (m_currentWindow == iter.value())
-        {
-            moveContentToWindow(nullptr);
-            m_currentWindow = nullptr;
-        }
-        delete iter.value();
-        m_windowMap.erase(iter);
-    }
+    deleteWindowForScreen(screen);
 }
 
 KSWindow *KSScreenManager::createWindowForScreen(QScreen *screen)
@@ -229,6 +219,31 @@ KSWindow *KSScreenManager::createWindowForScreen(QScreen *screen)
     m_windowMap.insert(screen, window);
 
     return window;
+}
+
+void KSScreenManager::deleteWindowForScreen(QScreen *screen)
+{
+    auto iter = m_windowMap.find(screen);
+    if (iter != m_windowMap.end())
+    {
+        auto screenBackground = iter.value();
+        m_windowMap.erase(iter);
+
+        // 若是当前内容窗口所在的屏幕被移除时，将内容窗口移动到另一个屏幕上
+        if (m_currentWindow == screenBackground)
+        {
+            KSWindow* newScreenBackground = nullptr;
+            if( m_windowMap.size() > 0 )
+            {
+                newScreenBackground = m_windowMap.values().at(0);
+            }
+            moveContentToWindow(newScreenBackground);
+            m_currentWindow = newScreenBackground;
+        }
+
+        delete iter.value();
+        m_windowMap.erase(iter);
+    }
 }
 
 bool KSScreenManager::activate()
@@ -264,6 +279,7 @@ bool KSScreenManager::activate()
 
     auto findPrimaryWindowIter = m_windowMap.find(qApp->primaryScreen());
     KSWindow *defaultWindow = findPrimaryWindowIter == m_windowMap.end() ? nullptr : findPrimaryWindowIter.value();
+
     moveContentToWindow(defaultWindow);
 
     connect(qApp, &QApplication::screenAdded, this, &KSScreenManager::handleScreenAdded);
@@ -419,8 +435,14 @@ void KSScreenManager::moveContentToWindow(KSWindow *window)
 
     if (m_currentWindow)
     {
-        KLOG_DEBUG() << "grab to current window:" << m_currentWindow->objectName();
-        KSGrab::getInstance()->grabWindow(m_currentWindow->winId(), false);
+        if( !KSGrab::getInstance()->grabWindow(m_currentWindow->winId(), false) )
+        {
+            KLOG_WARNING() << "grab to current window:" << m_currentWindow->objectName() << "failed!";
+        }
+        else
+        {
+            KLOG_DEBUG() << "grab to current window:" << m_currentWindow->objectName() << "failed!";
+        }
         updateCurrentSubWindowGeometry(window->size());
     }
     else

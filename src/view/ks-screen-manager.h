@@ -78,7 +78,9 @@ private:
 
     bool activate();
     void createWindows();
+
     KSWindow* createWindowForScreen(QScreen* screen);
+    void deleteWindowForScreen(QScreen* screen);
 
     bool deactivate();
     void destroyWindows();
