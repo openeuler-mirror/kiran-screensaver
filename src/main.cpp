@@ -13,6 +13,7 @@
  */
 
 #include <kiran-application.h>
+#include <QTranslator>
 
 #include "ks-manager.h"
 #include "qt5-log-i.h"
@@ -25,6 +26,21 @@ int main(int argc, char *argv[])
                   "kiran-screensaver");
 
     KiranApplication app(argc, argv);
+
+    auto translator = new QTranslator;
+    if( translator->load(QLocale(),
+                         "kiran-screensaver",
+                         ".",
+                         "/usr/share/kiran-screensaver/translations/",
+                         ".qm") )
+    {
+        app.installTranslator(translator);
+    }
+    else
+    {
+        qWarning() << "can't load translator";
+    }
+
 
     KSManager manager;
     if( !manager.init() )

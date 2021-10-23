@@ -60,7 +60,7 @@ bool KSFade::startAsync()
 
     if(!m_fadeInterface)
     {
-        KLOG_WARNING() << "fade out isn't supported";
+        KLOG_ERROR() << "fade out isn't supported";
         return false;
     }
 

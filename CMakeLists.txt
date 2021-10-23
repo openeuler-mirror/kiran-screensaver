@@ -99,6 +99,8 @@ set(DBUS_SERVICE_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/db
 set(XDG_AUTO_START_DIR /etc/xdg/autostart)
 set(TRANSLATIONS_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/kiran-screensaver/translations/)
 
+add_subdirectory(tools)
+
 configure_file(data/config.h.in ${CMAKE_BINARY_DIR}/config.h @ONLY)
 configure_file(data/org.mate.ScreenSaver.service.in ${CMAKE_BINARY_DIR}/org.mate.ScreenSaver.service @ONLY)
 configure_file(data/com.kylinsec.Kiran.ScreenSaver.service.in ${CMAKE_BINARY_DIR}/com.kylinsec.Kiran.ScreenSaver.service)

@@ -99,7 +99,7 @@ bool KSManager::initDBusListener()
     m_mateAdaptor = new KSMateAdaptor(m_listener);
 
     QDBusConnection sessionConnection = QDBusConnection::sessionBus();
-    if(!sessionConnection.registerService("com.kylinsec.ScreenSaver"))
+    if(!sessionConnection.registerService("com.kylinsec.Kiran.ScreenSaver"))
     {
         KLOG_ERROR() << "session bus can't register service:" << sessionConnection.lastError();
         return false;

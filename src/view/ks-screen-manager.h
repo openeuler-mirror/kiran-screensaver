@@ -11,6 +11,8 @@
  *
  * Author:     liuxinhao <liuxinhao@kylinos.com.cn>
  */
+
+
 #ifndef KIRAN_SCREENSAVER_SRC_SCREEN_MANAGER_KS_SCREEN_MANAGER_H_
 #define KIRAN_SCREENSAVER_SRC_SCREEN_MANAGER_KS_SCREEN_MANAGER_H_
 
