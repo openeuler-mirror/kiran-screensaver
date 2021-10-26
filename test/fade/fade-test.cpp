@@ -13,7 +13,7 @@
  */
 
 #include "fade-test.h"
-#include "ks-fade.h"
+#include "fade.h"
 
 #include <qt5-log-i.h>
 #include <QApplication>

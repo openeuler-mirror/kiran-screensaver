@@ -12,31 +12,20 @@
  * Author:     liuxinhao <liuxinhao@kylinos.com.cn>
  */
 
-#ifndef KIRAN_SCREENSAVER_SRC_SCREENSAVER_FLOAT_LABEL_H_
-#define KIRAN_SCREENSAVER_SRC_SCREENSAVER_FLOAT_LABEL_H_
-
-#include "float-widget.h"
-
-class QLabel;
+#ifndef KIRAN_SCREENSAVER_INCLUDE_INTERFACE_H_
+#define KIRAN_SCREENSAVER_INCLUDE_INTERFACE_H_
 
 namespace Kiran
 {
 namespace ScreenSaver
 {
-class FloatLabel : public FloatWidget
+class Interface
 {
-    Q_OBJECT
 public:
-    explicit FloatLabel(QWidget* parent = nullptr);
-    ~FloatLabel();
-
-    void setText(const QString& text);
-    void setPixmap(const QPixmap& pixmap, const QSize& size);
-
-private:
-    QLabel* m_labelPixmap = nullptr;
-    QLabel* m_labelText = nullptr;
+    ///解锁框插件调用该接口通知kiran-screensaver已通过认证，认证成功,并进行解锁
+    virtual void authenticationPassed() = 0;
 };
 }  // namespace ScreenSaver
 }  // namespace Kiran
-#endif  //KIRAN_SCREENSAVER_SRC_SCREENSAVER_FLOAT_LABEL_H_
+
+#endif  //KIRAN_SCREENSAVER_INCLUDE_INTERFACE_H_

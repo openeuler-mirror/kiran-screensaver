@@ -11,32 +11,34 @@
  *
  * Author:     liuxinhao <liuxinhao@kylinos.com.cn>
  */
+#ifndef KIRAN_SCREENSAVER_SRC_FADE_FADE_GAMMA_H_
+#define KIRAN_SCREENSAVER_SRC_FADE_FADE_GAMMA_H_
 
-#ifndef KIRAN_SCREENSAVER_SRC_SCREENSAVER_FLOAT_LABEL_H_
-#define KIRAN_SCREENSAVER_SRC_SCREENSAVER_FLOAT_LABEL_H_
+#include <QtGlobal>
 
-#include "float-widget.h"
+#include "fade-interface.h"
 
-class QLabel;
-
+/**
+ * @brief: 通过XGamma插件实现屏幕淡出相关功能实现
+ * @note:  暂未实现
+ */
 namespace Kiran
 {
 namespace ScreenSaver
 {
-class FloatLabel : public FloatWidget
+class FadeGamma : public FadeInterface
 {
-    Q_OBJECT
 public:
-    explicit FloatLabel(QWidget* parent = nullptr);
-    ~FloatLabel();
+    FadeGamma();
+    ~FadeGamma();
 
-    void setText(const QString& text);
-    void setPixmap(const QPixmap& pixmap, const QSize& size);
-
-private:
-    QLabel* m_labelPixmap = nullptr;
-    QLabel* m_labelText = nullptr;
+public:
+    static bool checkForSupport();
+    bool setup() override;
+    bool setAlphaGamma(double alpha) override;
+    void finish() override;
 };
 }  // namespace ScreenSaver
 }  // namespace Kiran
-#endif  //KIRAN_SCREENSAVER_SRC_SCREENSAVER_FLOAT_LABEL_H_
+
+#endif  //KIRAN_SCREENSAVER_SRC_FADE_FADE_GAMMA_H_

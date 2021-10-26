@@ -11,30 +11,26 @@
  *
  * Author:     liuxinhao <liuxinhao@kylinos.com.cn>
  */
-#ifndef KIRAN_SCREENSAVER_SRC_LISTENER_LOGIND_SESSION_MONITOR_H_
-#define KIRAN_SCREENSAVER_SRC_LISTENER_LOGIND_SESSION_MONITOR_H_
 
-#include <QObject>
+#include "idle-watcher-factory.h"
+#include <qt5-log-i.h>
+#include "idle-watcher-mate.h"
 
-// 监听logind发出的Lock、UnLock信号的封装
-namespace Kiran
+using namespace Kiran::ScreenSaver;
+
+IdleWatcher* IdleWatcherFactory::createIdleWatcher()
 {
-namespace ScreenSaver
-{
-class LogindSessionMonitor : public QObject
-{
-    Q_OBJECT
-public:
-    explicit LogindSessionMonitor(QObject* parent = nullptr);
-    ~LogindSessionMonitor() override;
+    IdleWatcher* res = nullptr;
 
-public:
-    bool init();
+    QString desktopEnv = qgetenv("XDG_CURRENT_DESKTOP");
+    if(desktopEnv.compare("MATE",Qt::CaseInsensitive) == 0)
+    {
+        res = new IdleWatcherMate;
+    }
+    else
+    {
+        KLOG_WARNING() << "not supported this DE <" << desktopEnv << ">";
+    }
 
-signals:
-    void Lock();
-    void Unlock();
-};
-}  // namespace ScreenSaver
-}  // namespace Kiran
-#endif  //KIRAN_SCREENSAVER_SRC_LISTENER_LOGIND_SESSION_MONITOR_H_
+    return res;
+}

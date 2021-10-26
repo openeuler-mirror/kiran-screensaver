@@ -21,7 +21,7 @@
 #include <QSequentialAnimationGroup>
 #include <QParallelAnimationGroup>
 #include <QApplication>
-
+using namespace Kiran::ScreenSaver;
 FloatWidget::FloatWidget(QWidget *parent)
     :QWidget(parent)
 {

@@ -11,30 +11,18 @@
  *
  * Author:     liuxinhao <liuxinhao@kylinos.com.cn>
  */
-#ifndef KIRAN_SCREENSAVER_SRC_LISTENER_LOGIND_SESSION_MONITOR_H_
-#define KIRAN_SCREENSAVER_SRC_LISTENER_LOGIND_SESSION_MONITOR_H_
 
-#include <QObject>
+#include "invisible-window.h"
 
-// 监听logind发出的Lock、UnLock信号的封装
-namespace Kiran
+using namespace Kiran::ScreenSaver;
+
+InvisibleWindow::InvisibleWindow(QWidget *parent)
+    :QWidget(parent)
 {
-namespace ScreenSaver
-{
-class LogindSessionMonitor : public QObject
-{
-    Q_OBJECT
-public:
-    explicit LogindSessionMonitor(QObject* parent = nullptr);
-    ~LogindSessionMonitor() override;
+    setWindowFlag(Qt::BypassWindowManagerHint);
+    setGeometry(QRect(-100,-100,10,10));
+}
 
-public:
-    bool init();
-
-signals:
-    void Lock();
-    void Unlock();
-};
-}  // namespace ScreenSaver
-}  // namespace Kiran
-#endif  //KIRAN_SCREENSAVER_SRC_LISTENER_LOGIND_SESSION_MONITOR_H_
+InvisibleWindow::~InvisibleWindow()
+{
+}

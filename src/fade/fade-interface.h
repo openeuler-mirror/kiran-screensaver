@@ -12,31 +12,31 @@
  * Author:     liuxinhao <liuxinhao@kylinos.com.cn>
  */
 
-#ifndef KIRAN_SCREENSAVER_SRC_SCREENSAVER_FLOAT_LABEL_H_
-#define KIRAN_SCREENSAVER_SRC_SCREENSAVER_FLOAT_LABEL_H_
+#ifndef KIRAN_SCREENSAVER_SRC_FADE_FADE_INTERFACE_H_
+#define KIRAN_SCREENSAVER_SRC_FADE_FADE_INTERFACE_H_
 
-#include "float-widget.h"
-
-class QLabel;
+/**
+ * @interface KSFade淡出接口,相关具体实现需继承该接口进行实现
+ */
 
 namespace Kiran
 {
 namespace ScreenSaver
 {
-class FloatLabel : public FloatWidget
+class FadeInterface
 {
-    Q_OBJECT
 public:
-    explicit FloatLabel(QWidget* parent = nullptr);
-    ~FloatLabel();
+    FadeInterface(){};
+    virtual ~FadeInterface() = default;
 
-    void setText(const QString& text);
-    void setPixmap(const QPixmap& pixmap, const QSize& size);
-
-private:
-    QLabel* m_labelPixmap = nullptr;
-    QLabel* m_labelText = nullptr;
+    ///保存屏幕的gamma信息
+    virtual bool setup() = 0;
+    ///恢复屏幕的gamma信息
+    virtual void finish() = 0;
+    ///中途更新屏幕gamma信息
+    virtual bool setAlphaGamma(double alpha) = 0;
 };
 }  // namespace ScreenSaver
 }  // namespace Kiran
-#endif  //KIRAN_SCREENSAVER_SRC_SCREENSAVER_FLOAT_LABEL_H_
+
+#endif  //KIRAN_SCREENSAVER_SRC_FADE_FADE_INTERFACE_H_

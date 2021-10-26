@@ -12,31 +12,27 @@
  * Author:     liuxinhao <liuxinhao@kylinos.com.cn>
  */
 
-#ifndef KIRAN_SCREENSAVER_SRC_SCREENSAVER_FLOAT_LABEL_H_
-#define KIRAN_SCREENSAVER_SRC_SCREENSAVER_FLOAT_LABEL_H_
+#ifndef KIRAN_SCREENSAVER_SRC_IDLE_WATCHER_IDLE_WATCHER_FACTORY_H_
+#define KIRAN_SCREENSAVER_SRC_IDLE_WATCHER_IDLE_WATCHER_FACTORY_H_
 
-#include "float-widget.h"
-
-class QLabel;
+#include "idle-watcher.h"
 
 namespace Kiran
 {
 namespace ScreenSaver
 {
-class FloatLabel : public FloatWidget
+class IdleWatcherFactory
 {
-    Q_OBJECT
 public:
-    explicit FloatLabel(QWidget* parent = nullptr);
-    ~FloatLabel();
-
-    void setText(const QString& text);
-    void setPixmap(const QPixmap& pixmap, const QSize& size);
+    ~IdleWatcherFactory() = default;
 
 private:
-    QLabel* m_labelPixmap = nullptr;
-    QLabel* m_labelText = nullptr;
+    IdleWatcherFactory() = default;
+
+public:
+    static IdleWatcher* createIdleWatcher();
 };
 }  // namespace ScreenSaver
 }  // namespace Kiran
-#endif  //KIRAN_SCREENSAVER_SRC_SCREENSAVER_FLOAT_LABEL_H_
+
+#endif  //KIRAN_SCREENSAVER_SRC_IDLE_WATCHER_IDLE_WATCHER_FACTORY_H_

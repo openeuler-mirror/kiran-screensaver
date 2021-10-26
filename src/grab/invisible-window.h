@@ -12,31 +12,26 @@
  * Author:     liuxinhao <liuxinhao@kylinos.com.cn>
  */
 
-#ifndef KIRAN_SCREENSAVER_SRC_SCREENSAVER_FLOAT_LABEL_H_
-#define KIRAN_SCREENSAVER_SRC_SCREENSAVER_FLOAT_LABEL_H_
+#ifndef KIRAN_SCREENSAVER_SRC_KS_INVISIBLE_WINDOW_H_
+#define KIRAN_SCREENSAVER_SRC_KS_INVISIBLE_WINDOW_H_
 
-#include "float-widget.h"
+#include <QWidget>
 
-class QLabel;
-
+/**
+ * @brief 封装的在屏幕之外的窗口(不进行显示),负责在屏幕淡出时抓取输入设备到该窗口,避免误输入
+ */
 namespace Kiran
 {
 namespace ScreenSaver
 {
-class FloatLabel : public FloatWidget
+class InvisibleWindow : public QWidget
 {
     Q_OBJECT
 public:
-    explicit FloatLabel(QWidget* parent = nullptr);
-    ~FloatLabel();
-
-    void setText(const QString& text);
-    void setPixmap(const QPixmap& pixmap, const QSize& size);
-
-private:
-    QLabel* m_labelPixmap = nullptr;
-    QLabel* m_labelText = nullptr;
+    InvisibleWindow(QWidget* parent = nullptr);
+    ~InvisibleWindow();
 };
 }  // namespace ScreenSaver
 }  // namespace Kiran
-#endif  //KIRAN_SCREENSAVER_SRC_SCREENSAVER_FLOAT_LABEL_H_
+
+#endif  //KIRAN_SCREENSAVER_SRC_KS_INVISIBLE_WINDOW_H_

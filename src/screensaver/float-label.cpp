@@ -16,6 +16,8 @@
 #include <QVBoxLayout>
 #include <QLabel>
 
+using namespace Kiran::ScreenSaver;
+
 FloatLabel::FloatLabel(QWidget *parent)
     : FloatWidget(parent)
 {

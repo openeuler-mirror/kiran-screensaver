@@ -15,7 +15,7 @@
 #include <kiran-application.h>
 #include <QTranslator>
 
-#include "ks-manager.h"
+#include "manager.h"
 #include "qt5-log-i.h"
 
 int main(int argc, char *argv[])
@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
     }
 
 
-    KSManager manager;
+    Kiran::ScreenSaver::Manager manager;
     if( !manager.init() )
     {
         KLOG_ERROR() << "kiran-screensaver init failed! exit.";

@@ -18,6 +18,8 @@
 #include <QDBusInterface>
 #include <QDBusReply>
 
+using namespace Kiran::ScreenSaver;
+
 static const QString LOGIND_SERVICE = "org.freedesktop.login1";
 static const QString LOGIND_PATH = "/org/freedesktop/login1";
 static const QString LOGIND_MANAGER_INTERFACE = "org.freedesktop.login1.Manager";

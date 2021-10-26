@@ -14,10 +14,14 @@
 #ifndef FLOATWIDGET_H
 #define FLOATWIDGET_H
 
-#include <QWidget>
 #include <QGraphicsOpacityEffect>
+#include <QWidget>
 
 class QSequentialAnimationGroup;
+namespace Kiran
+{
+namespace ScreenSaver
+{
 class FloatWidget : public QWidget
 {
     Q_OBJECT
@@ -28,14 +32,14 @@ public:
         DIRECTION_UP,
         DIRECTION_DOWN
     };
-    FloatWidget(QWidget* parent = nullptr);
+    FloatWidget(QWidget *parent = nullptr);
     virtual ~FloatWidget();
 
     // 设置父窗口锚点，在父窗口的x,y轴百分比
-    void setAnchor(qreal xAxisPercentage,qreal yAxisPercentage);
+    void setAnchor(qreal xAxisPercentage, qreal yAxisPercentage);
 
     // 设置漂浮参数
-    void setFloatingParameter(FloatingDirection direction,bool floatingOpacity,int durationMs,int distancePx);
+    void setFloatingParameter(FloatingDirection direction, bool floatingOpacity, int durationMs, int distancePx);
 
     void start();
     void stop();
@@ -66,9 +70,10 @@ private:
 
     int m_floatingDistance = 0;
 
-    QGraphicsOpacityEffect* m_opacityEffect = nullptr;
+    QGraphicsOpacityEffect *m_opacityEffect = nullptr;
 
-    QSequentialAnimationGroup* m_floatingAnimation = nullptr;
+    QSequentialAnimationGroup *m_floatingAnimation = nullptr;
 };
-
-#endif // FLOATWIDGET_H
+}  // namespace ScreenSaver
+}  // namespace Kiran
+#endif  // FLOATWIDGET_H

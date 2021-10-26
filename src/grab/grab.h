@@ -12,31 +12,45 @@
  * Author:     liuxinhao <liuxinhao@kylinos.com.cn>
  */
 
-#ifndef KIRAN_SCREENSAVER_SRC_SCREENSAVER_FLOAT_LABEL_H_
-#define KIRAN_SCREENSAVER_SRC_SCREENSAVER_FLOAT_LABEL_H_
+#ifndef KIRAN_SCREENSAVER_SRC_GRAB_GRAB_H_
+#define KIRAN_SCREENSAVER_SRC_GRAB_GRAB_H_
 
-#include "float-widget.h"
+#include <QWindow>
 
-class QLabel;
+
 
 namespace Kiran
 {
 namespace ScreenSaver
 {
-class FloatLabel : public FloatWidget
+class InvisibleWindow;
+/**
+ * @brief 封装的X11输入设备抓取接口
+ */
+class Grab
 {
-    Q_OBJECT
 public:
-    explicit FloatLabel(QWidget* parent = nullptr);
-    ~FloatLabel();
-
-    void setText(const QString& text);
-    void setPixmap(const QPixmap& pixmap, const QSize& size);
+    static Grab* getInstance();
+    ~Grab();
 
 private:
-    QLabel* m_labelPixmap = nullptr;
-    QLabel* m_labelText = nullptr;
+    Grab();
+
+public:
+    // 释放抓取
+    void releaseGrab();
+    // 抓取输入设备至窗口上
+    bool grabWindow(WId wid, bool grabPointer = true);
+    // 抓取输入设备至root窗口上
+    bool grabRoot(bool grabPointer = true);
+    // 将输入设备抓取至不显示的窗口上
+    bool grabOffscreen(bool grabPointer = true);
+
+private:
+    InvisibleWindow* m_invisibleWindow = nullptr;
+    WId m_grabWID = 0;
 };
 }  // namespace ScreenSaver
 }  // namespace Kiran
-#endif  //KIRAN_SCREENSAVER_SRC_SCREENSAVER_FLOAT_LABEL_H_
+
+#endif  //KIRAN_SCREENSAVER_SRC_GRAB_GRAB_H_

@@ -11,30 +11,34 @@
  *
  * Author:     liuxinhao <liuxinhao@kylinos.com.cn>
  */
-#ifndef KIRAN_SCREENSAVER_SRC_LISTENER_LOGIND_SESSION_MONITOR_H_
-#define KIRAN_SCREENSAVER_SRC_LISTENER_LOGIND_SESSION_MONITOR_H_
 
-#include <QObject>
+#include "fade-gamma.h"
 
-// 监听logind发出的Lock、UnLock信号的封装
-namespace Kiran
+using namespace Kiran::ScreenSaver;
+
+FadeGamma::FadeGamma()
 {
-namespace ScreenSaver
-{
-class LogindSessionMonitor : public QObject
-{
-    Q_OBJECT
-public:
-    explicit LogindSessionMonitor(QObject* parent = nullptr);
-    ~LogindSessionMonitor() override;
+}
 
-public:
-    bool init();
+FadeGamma::~FadeGamma()
+{
+}
 
-signals:
-    void Lock();
-    void Unlock();
-};
-}  // namespace ScreenSaver
-}  // namespace Kiran
-#endif  //KIRAN_SCREENSAVER_SRC_LISTENER_LOGIND_SESSION_MONITOR_H_
+bool FadeGamma::setup()
+{
+    return false;
+}
+
+void FadeGamma::finish()
+{
+}
+
+bool FadeGamma::setAlphaGamma(double alpha)
+{
+    return false;
+}
+
+bool FadeGamma::checkForSupport()
+{
+    return false;
+}

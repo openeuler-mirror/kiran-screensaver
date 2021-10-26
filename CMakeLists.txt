@@ -20,16 +20,16 @@ set(CMAKE_AUTOUIC ON)
 set(DBUS_ADAPTOR_SRC "")
 qt5_add_dbus_adaptor(DBUS_ADAPTOR_SRC
         data/org.mate.ScreenSaver.xml
-        ${CMAKE_SOURCE_DIR}/src/listener/ks-listener.h
-        KSListener
-        ks_mate_adaptor
-        KSMateAdaptor)
+        ${CMAKE_SOURCE_DIR}/src/listener/listener.h
+        Kiran::ScreenSaver::Listener
+        mate_adaptor
+        MateAdaptor)
 qt5_add_dbus_adaptor(DBUS_ADAPTOR_SRC
         data/com.kylinsec.Kiran.ScreenSaver.xml
-        ${CMAKE_SOURCE_DIR}/src/listener/ks-listener.h
-        KSListener
-        ks_kiran_adaptor
-        KSKiranAdaptor)
+        ${CMAKE_SOURCE_DIR}/src/listener/listener.h
+        Kiran::ScreenSaver::Listener
+        kiran_adaptor
+        KiranAdaptor)
 foreach(adaptor_item ${DBUS_ADAPTOR_SRC})
     set_property(SOURCE ${adaptor_item} PROPERTY SKIP_AUTOGEN ON)
 endforeach()

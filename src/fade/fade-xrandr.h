@@ -12,31 +12,40 @@
  * Author:     liuxinhao <liuxinhao@kylinos.com.cn>
  */
 
-#ifndef KIRAN_SCREENSAVER_SRC_SCREENSAVER_FLOAT_LABEL_H_
-#define KIRAN_SCREENSAVER_SRC_SCREENSAVER_FLOAT_LABEL_H_
+#ifndef KIRAN_SCREENSAVER_SRC_FADE_FADE_XRANDR_H_
+#define KIRAN_SCREENSAVER_SRC_FADE_FADE_XRANDR_H_
 
-#include "float-widget.h"
+#include <QtGlobal>
+#include "fade-interface.h"
 
-class QLabel;
+struct KSFadeXrandrPrivate;
 
+/**
+ * @brief 基于X11 xrandr插件接口实现的屏幕淡出具体实现
+ */
 namespace Kiran
 {
 namespace ScreenSaver
 {
-class FloatLabel : public FloatWidget
+class FadeXrandr : public FadeInterface
 {
-    Q_OBJECT
 public:
-    explicit FloatLabel(QWidget* parent = nullptr);
-    ~FloatLabel();
+    FadeXrandr();
+    ~FadeXrandr();
 
-    void setText(const QString& text);
-    void setPixmap(const QPixmap& pixmap, const QSize& size);
+public:
+    static bool checkForSupport();
+    bool setup() override;
+    bool setAlphaGamma(double alpha) override;
+    void finish() override;
 
 private:
-    QLabel* m_labelPixmap = nullptr;
-    QLabel* m_labelText = nullptr;
+    void cleanup();
+
+private:
+    KSFadeXrandrPrivate* d_ptr = nullptr;
 };
 }  // namespace ScreenSaver
 }  // namespace Kiran
-#endif  //KIRAN_SCREENSAVER_SRC_SCREENSAVER_FLOAT_LABEL_H_
+
+#endif  //KIRAN_SCREENSAVER_SRC_FADE_FADE_XRANDR_H_
