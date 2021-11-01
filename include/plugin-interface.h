@@ -39,8 +39,6 @@ public:
 };
 }
 }
-
-#define PluginInterface_iid "com.kylinsec.Kiran.PluginInterface/1.0"
+#define PluginInterface_iid "com.kylinsec.Kiran.ScreenSaver.PluginInterface/1.0"
 Q_DECLARE_INTERFACE(Kiran::ScreenSaver::PluginInterface,PluginInterface_iid)
-
 #endif  //KIRAN_SCREENSAVER_INCLUDE_PLUGIN_INTERFACE_H_

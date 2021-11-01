@@ -30,9 +30,9 @@ qt5_add_dbus_adaptor(DBUS_ADAPTOR_SRC
         Kiran::ScreenSaver::Listener
         kiran_adaptor
         KiranAdaptor)
-foreach(adaptor_item ${DBUS_ADAPTOR_SRC})
+foreach (adaptor_item ${DBUS_ADAPTOR_SRC})
     set_property(SOURCE ${adaptor_item} PROPERTY SKIP_AUTOGEN ON)
-endforeach()
+endforeach ()
 
 #生成使用的DBus接口源文件
 set(GSM_PRESENCE_XML data/org.gnome.SessionManager.Presence.xml)
@@ -41,15 +41,15 @@ set_source_files_properties(${GSM_PRESENCE_XML}
         CLASSNAME GSMPresenceProxy
         NO_NAMESPACE true)
 qt5_add_dbus_interface(GSM_PRESENCE_SRC ${GSM_PRESENCE_XML} gsm_presence_proxy)
-foreach(interface_item ${GSM_PRESENCE_SRC})
+foreach (interface_item ${GSM_PRESENCE_SRC})
     set_property(SOURCE ${interface_item} PROPERTY SKIP_AUTOGEN ON)
-endforeach()
+endforeach ()
 
 file(GLOB_RECURSE SRC "src/*.cpp" "src/*.h")
 file(GLOB DEVEL_HEADER "include/*.h")
 #翻译文件
-set( TS_FILES "translations/kiran-screensaver.zh_CN.ts" )
-qt5_create_translation( QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES} )
+set(TS_FILES "translations/kiran-screensaver.zh_CN.ts")
+qt5_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
 
 add_executable(${PROJECT_NAME}
         ${DBUS_ADAPTOR_SRC}
@@ -106,10 +106,10 @@ configure_file(data/org.mate.ScreenSaver.service.in ${CMAKE_BINARY_DIR}/org.mate
 configure_file(data/com.kylinsec.Kiran.ScreenSaver.service.in ${CMAKE_BINARY_DIR}/com.kylinsec.Kiran.ScreenSaver.service)
 
 install(TARGETS ${PROJECT_NAME} DESTINATION ${SCREENSAVER_BIN_DIR})
-install(FILES ${QM_FILES} DESTINATION ${TRANSLATIONS_INSTALL_DIR} )
+install(FILES ${QM_FILES} DESTINATION ${TRANSLATIONS_INSTALL_DIR})
 install(FILES ${DEVEL_HEADER} DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}/kiran-screensaver)
 install(FILES ${CMAKE_BINARY_DIR}/org.mate.ScreenSaver.service DESTINATION ${DBUS_SERVICE_INSTALL_DIR})
 install(FILES ${CMAKE_BINARY_DIR}/com.kylinsec.Kiran.ScreenSaver.service DESTINATION ${DBUS_SERVICE_INSTALL_DIR})
 install(FILES data/kiran-screensaver.desktop DESTINATION ${XDG_AUTO_START_DIR})
-install(FILES data/kiran-screensaver DESTINATION /${CMAKE_INSTALL_SYSCONFDIR}/pam.d/ )
-install(FILES data/com.kylinsec.kiran.screensaver.gschema.xml DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/glib-2.0/schemas/ )
+install(FILES data/kiran-screensaver DESTINATION /${CMAKE_INSTALL_SYSCONFDIR}/pam.d/)
+install(FILES data/com.kylinsec.kiran.screensaver.gschema.xml DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/glib-2.0/schemas/)
