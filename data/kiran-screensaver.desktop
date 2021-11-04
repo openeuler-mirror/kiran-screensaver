@@ -9,6 +9,6 @@ Exec=kiran-screensaver
 OnlyShowIn=MATE;KIRAN
 NoDisplay=true
 
-X-MATE-Autostart-Phase=Application
-X-MATE-Autostart-Notify=true
-X-MATE-AutoRestart=true
+X-KIRAN-Autostart-Phase=Application
+X-KIRAN-Autostart-Notify=true
+X-KIRAN-AutoRestart=true
