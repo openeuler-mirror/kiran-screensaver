@@ -101,7 +101,6 @@ configure_file(data/com.kylinsec.Kiran.ScreenSaver.service.in ${CMAKE_BINARY_DIR
 install(TARGETS ${PROJECT_NAME} DESTINATION ${SCREENSAVER_BIN_DIR})
 install(FILES ${QM_FILES} DESTINATION ${TRANSLATIONS_INSTALL_DIR})
 install(FILES ${DEVEL_HEADER} DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}/kiran-screensaver)
-install(FILES ${CMAKE_BINARY_DIR}/org.mate.ScreenSaver.service DESTINATION ${DBUS_SERVICE_INSTALL_DIR})
 install(FILES ${CMAKE_BINARY_DIR}/com.kylinsec.Kiran.ScreenSaver.service DESTINATION ${DBUS_SERVICE_INSTALL_DIR})
 install(FILES data/kiran-screensaver.desktop DESTINATION ${XDG_AUTO_START_DIR})
 install(FILES data/kiran-screensaver DESTINATION /${CMAKE_INSTALL_SYSCONFDIR}/pam.d/)
