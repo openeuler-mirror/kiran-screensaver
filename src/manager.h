@@ -17,9 +17,7 @@
 
 #include <QObject>
 
-class MateAdaptor;
 class KiranAdaptor;
-
 namespace Kiran
 {
 namespace ScreenSaver
@@ -54,7 +52,6 @@ private:
     Grab* m_grab = nullptr;
     IdleWatcher* m_idleWatcher = nullptr;
     Listener* m_listener = nullptr;
-    MateAdaptor* m_mateAdaptor = nullptr;
     KiranAdaptor* m_kiranAdaptor = nullptr;
     ScreenManager* m_screenManager = nullptr;
 };

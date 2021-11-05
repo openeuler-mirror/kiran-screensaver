@@ -19,12 +19,6 @@ set(CMAKE_AUTOUIC ON)
 #生成DBus服务适配器
 set(DBUS_ADAPTOR_SRC "")
 qt5_add_dbus_adaptor(DBUS_ADAPTOR_SRC
-        data/org.mate.ScreenSaver.xml
-        ${CMAKE_SOURCE_DIR}/src/listener/listener.h
-        Kiran::ScreenSaver::Listener
-        mate_adaptor
-        MateAdaptor)
-qt5_add_dbus_adaptor(DBUS_ADAPTOR_SRC
         data/com.kylinsec.Kiran.ScreenSaver.xml
         ${CMAKE_SOURCE_DIR}/src/listener/listener.h
         Kiran::ScreenSaver::Listener
@@ -102,7 +96,6 @@ set(TRANSLATIONS_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/ki
 add_subdirectory(tools)
 
 configure_file(data/config.h.in ${CMAKE_BINARY_DIR}/config.h @ONLY)
-configure_file(data/org.mate.ScreenSaver.service.in ${CMAKE_BINARY_DIR}/org.mate.ScreenSaver.service @ONLY)
 configure_file(data/com.kylinsec.Kiran.ScreenSaver.service.in ${CMAKE_BINARY_DIR}/com.kylinsec.Kiran.ScreenSaver.service)
 
 install(TARGETS ${PROJECT_NAME} DESTINATION ${SCREENSAVER_BIN_DIR})

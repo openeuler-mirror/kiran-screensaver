@@ -17,7 +17,6 @@
 #include "grab.h"
 #include "idle-watcher-factory.h"
 #include "kiran_adaptor.h"
-#include "mate_adaptor.h"
 #include "listener.h"
 #include "prefs.h"
 #include "screen-manager.h"
@@ -40,7 +39,6 @@ Manager::~Manager()
     delete m_prefs;
     delete m_fade;
     delete m_kiranAdaptor;
-    delete m_mateAdaptor;
     delete m_listener;
 }
 
@@ -98,8 +96,6 @@ bool Manager::initDBusListener()
             this,&Manager::handleListenerLock);
 
     m_kiranAdaptor = new KiranAdaptor(m_listener);
-    m_mateAdaptor = new MateAdaptor(m_listener);
-
     QDBusConnection sessionConnection = QDBusConnection::sessionBus();
     if(!sessionConnection.registerService("com.kylinsec.Kiran.ScreenSaver"))
     {
