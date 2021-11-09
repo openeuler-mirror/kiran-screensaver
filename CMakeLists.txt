@@ -29,6 +29,7 @@ foreach (adaptor_item ${DBUS_ADAPTOR_SRC})
 endforeach ()
 
 #生成使用的DBus接口源文件
+##gnome session manager proxy
 set(GSM_PRESENCE_XML data/org.gnome.SessionManager.Presence.xml)
 set_source_files_properties(${GSM_PRESENCE_XML}
         PROPERTIES
@@ -38,6 +39,16 @@ qt5_add_dbus_interface(GSM_PRESENCE_SRC ${GSM_PRESENCE_XML} gsm_presence_proxy)
 foreach (interface_item ${GSM_PRESENCE_SRC})
     set_property(SOURCE ${interface_item} PROPERTY SKIP_AUTOGEN ON)
 endforeach ()
+## kiran session appearance proxy
+set(KIRAN_APPEARANCE_XML data/com.kylinsec.Kiran.SessionDaemon.Appearance.xml)
+set_source_files_properties(${KIRAN_APPEARANCE_XML}
+        PROPERTIES
+        CLASSNAME KiranAppearance
+        NO_NAMESPACE true)
+qt5_add_dbus_interface(KIRAN_APPEARANCE_SRC ${KIRAN_APPEARANCE_XML} kiran_appearance_proxy)
+foreach(interface_item ${KIRAN_APPEARANCE_SRC})
+    set_property(SOURCE ${interface_item} PROPERTY SKIP_AUTOGEN ON)
+endforeach()
 
 file(GLOB_RECURSE SRC "src/*.cpp" "src/*.h")
 file(GLOB DEVEL_HEADER "include/*.h")
@@ -48,6 +59,7 @@ qt5_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
 add_executable(${PROJECT_NAME}
         ${DBUS_ADAPTOR_SRC}
         ${GSM_PRESENCE_SRC}
+        ${KIRAN_APPEARANCE_SRC}
         ${SRC}
         ${DEVEL_HEADER}
         ${QM_FILES}

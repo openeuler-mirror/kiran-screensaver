@@ -20,6 +20,7 @@
 #include "prefs.h"
 #include "screensaver/screensaver.h"
 #include "window.h"
+#include "kiran_appearance_proxy.h"
 
 #include <qt5-log-i.h>
 #include <QApplication>
@@ -33,7 +34,7 @@
 using namespace Kiran::ScreenSaver;
 
 ScreenManager::ScreenManager(Fade *fade,
-                                 QObject *parent)
+                             QObject *parent)
     : QObject(parent),
       m_fade(fade),
       m_prefs(Prefs::getInstance())
@@ -126,7 +127,7 @@ bool ScreenManager::setLockActive(bool lockActive)
         {
             m_lockerInterface = m_lockerPluginInterface->createLocker();
             m_lockerInterface->setAnimationEnabled(m_enableAnimation);
-            m_lockerInterface->setAnimationDelay(UNLOCK_DIALOG_FADE_IN_ANIMATION_DELAY_MS,UNLOCK_DIALOG_FADE_OUT_ANIMATION_DELAY_MS);
+            m_lockerInterface->setAnimationDelay(UNLOCK_DIALOG_FADE_IN_ANIMATION_DELAY_MS, UNLOCK_DIALOG_FADE_OUT_ANIMATION_DELAY_MS);
             m_lockerInterface->setAnimationDuration(UNLOCK_DIALOG_FADE_IN_ANIMATION_DURATION_MS, UNLOCK_DIALOG_FADE_OUT_ANIMATION_DURATION_MS);
             m_lockerInterface->setEnableSwitch(m_prefs->getCanUserSwitch());
             moveContentToWindow(m_currentWindow);
@@ -209,7 +210,7 @@ void ScreenManager::handleScreenRemoved(QScreen *screen)
 Window *ScreenManager::createWindowForScreen(QScreen *screen)
 {
     auto window = new Window(m_enableAnimation, screen);
-    connect(window,&Window::mouseEnter,this,&ScreenManager::handleWindowMouseEnter);
+    connect(window, &Window::mouseEnter, this, &ScreenManager::handleWindowMouseEnter);
 
     KLOG_DEBUG() << "create window for screen:" << window->objectName();
 
@@ -234,8 +235,8 @@ void ScreenManager::deleteWindowForScreen(QScreen *screen)
         // 若是当前内容窗口所在的屏幕被移除时，将内容窗口移动到另一个屏幕上
         if (m_currentWindow == screenBackground)
         {
-            Window * newScreenBackground = nullptr;
-            if( m_windowMap.size() > 0 )
+            Window *newScreenBackground = nullptr;
+            if (m_windowMap.size() > 0)
             {
                 newScreenBackground = m_windowMap.values().at(0);
             }
@@ -269,11 +270,23 @@ bool ScreenManager::activate()
     }
 
     // 获取桌面壁纸路径
-    QGSettings mateBackgroundSettings("org.mate.background");
-    QVariant background = mateBackgroundSettings.get("picture-filename");
-    if (!m_background.load(background.toString()))
+    QString backgroundPath;
+    if( QDBusConnection::sessionBus().interface()->isServiceRegistered("com.kylinsec.Kiran.SessionDaemon.Appearance") )
     {
-        KLOG_WARNING() << "can't load background," << background.toString();
+        KiranAppearance appearanceProxy("com.kylinsec.Kiran.SessionDaemon.Appearance",
+                                        "/com/kylinsec/Kiran/SessionDaemon/Appearance",
+                                        QDBusConnection::sessionBus());
+        backgroundPath = appearanceProxy.lock_screen_background();
+    }
+    else
+    {
+        QGSettings mateBackgroundSettings("org.mate.background");
+        backgroundPath = mateBackgroundSettings.get("picture-filename").toString();
+    }
+
+    if (!m_background.load(backgroundPath))
+    {
+        KLOG_WARNING() << "can't load background," << backgroundPath;
     }
 
     // 创建背景窗口覆盖所有的屏幕
@@ -430,14 +443,14 @@ void ScreenManager::moveContentToWindow(Window *window)
         m_lockerInterface->get_widget_ptr()->stackUnder(m_screensaver);
     }
 
-    if(m_lockerVisible)
+    if (m_lockerVisible)
     {
         setBackgroundWindowBlured(m_currentWindow);
     }
 
     if (m_currentWindow)
     {
-        if( !Grab::getInstance()->grabWindow(m_currentWindow->winId(), false) )
+        if (!Grab::getInstance()->grabWindow(m_currentWindow->winId(), false))
         {
             KLOG_WARNING() << "grab to current window:" << m_currentWindow->objectName() << "failed!";
         }
@@ -451,7 +464,6 @@ void ScreenManager::moveContentToWindow(Window *window)
     {
         Grab::getInstance()->grabRoot(false);
     }
-
 }
 
 void ScreenManager::authenticationPassed()
@@ -461,7 +473,6 @@ void ScreenManager::authenticationPassed()
 
 void ScreenManager::updateCurrentSubWindowGeometry(QSize size)
 {
-
     if (m_lockerInterface != nullptr)
     {
         m_lockerInterface->get_widget_ptr()->resize(size);
@@ -475,7 +486,7 @@ void ScreenManager::updateCurrentSubWindowGeometry(QSize size)
 
 void ScreenManager::handleWindowMouseEnter()
 {
-    Window * window = qobject_cast<Window *>(sender());
+    Window *window = qobject_cast<Window *>(sender());
     moveContentToWindow(window);
 }
 
