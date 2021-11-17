@@ -30,11 +30,9 @@ namespace ScreenSaver
 {
 class Prefs : public QObject
 {
-    Q_OBJECT
-
 public:
     static Prefs* getInstance();
-    ~Prefs();
+    ~Prefs() override;
 
 private:
     Prefs(QObject* parent = nullptr);

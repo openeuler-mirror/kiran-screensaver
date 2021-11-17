@@ -15,7 +15,7 @@
 #include <qt5-log-i.h>
 #include <QMutex>
 #include <QScopedPointer>
-
+#include <QGSettings>
 #define RETURN_IF_SAME(value_1, value_2)  \
     {                                     \
         if (value_1 == value_2)           \
@@ -41,6 +41,7 @@ Prefs::Prefs(QObject* parent)
 
 Prefs::~Prefs()
 {
+    KLOG_DEBUG() << "~Prefs";
 }
 
 bool Prefs::init()

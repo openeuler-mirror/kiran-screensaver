@@ -36,7 +36,6 @@ Manager::~Manager()
 {
     // delete nullptr无影响
     delete m_screenManager;
-    delete m_prefs;
     delete m_fade;
     delete m_kiranAdaptor;
     delete m_listener;
