@@ -23,7 +23,7 @@ IdleWatcher* IdleWatcherFactory::createIdleWatcher()
     IdleWatcher* res = nullptr;
 
     QString desktopEnv = qgetenv("XDG_CURRENT_DESKTOP");
-    if(desktopEnv.compare("MATE",Qt::CaseInsensitive) == 0 || desktopEnv.compare("KIRAN",Qt::CaseInsensitive))
+    if (desktopEnv.compare("MATE", Qt::CaseInsensitive) == 0 || desktopEnv.compare("KIRAN", Qt::CaseInsensitive) == 0)
     {
         res = new IdleWatcherMate;
     }
