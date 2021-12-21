@@ -137,9 +137,15 @@ bool Manager::initIdleWatcher()
     connect(m_idleWatcher,&IdleWatcher::idleChanged,this, &Manager::onWatcherIdleChanged,Qt::DirectConnection);
     connect(m_idleWatcher,&IdleWatcher::idleNoticeChanged,this, &Manager::onWatcherIdleNoticeChanged,Qt::DirectConnection);
 
-    m_idleWatcher->setEnabled(true);
-    m_idleWatcher->setIdleDetectionActive(true);
+    m_idleWatcher->setEnabled(m_prefs->getIdleActivationLock());
+    m_idleWatcher->setIdleDetectionActive(m_prefs->getIdleActivationLock());
 
+    //连接至GSettings变化，判断是否开启空闲时锁屏,同步空闲监控器状态
+    connect(m_prefs,&Prefs::idleActivationLockChanged,[this](bool idleActivationLock){
+        KLOG_DEBUG() << "prefs idle activation lock changed:" << idleActivationLock << " update idle watcher enable";
+        m_idleWatcher->setEnabled(idleActivationLock);
+        m_idleWatcher->setIdleDetectionActive(idleActivationLock);
+    });
     return true;
 }
 

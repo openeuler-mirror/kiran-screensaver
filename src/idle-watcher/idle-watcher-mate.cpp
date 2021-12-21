@@ -97,6 +97,7 @@ bool IdleWatcherMate::setIdleDetectionActive(bool idleDetectionActive)
 
     m_idle = false;
     m_idleNotice = false;
+    //NOTE:由于空闲预告阶段会抓取鼠标键盘到屏幕外,所以空闲预告阶段不会出现设置空闲检测的情况,暂时不需要考虑特殊情况
     if(m_idleTimerID != 0)
     {
         killTimer(m_idleTimerID);

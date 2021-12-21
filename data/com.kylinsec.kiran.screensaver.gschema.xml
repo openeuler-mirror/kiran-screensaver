@@ -5,10 +5,10 @@
             <default>"/usr/lib64/kiran-screensaver/libkiran-screensaver-dialog.so"</default>
         </key>
 
-<!--        <key name="idle-activation-lock" type="b">-->
-<!--            <default>true</default>-->
-<!--            <description>空闲时是否锁定</description>-->
-<!--        </key>-->
+        <key name="idle-activation-lock" type="b">
+            <default>true</default>
+            <description>空闲时是否锁定</description>
+        </key>
 
         <key name="can-logout" type="b">
             <default>true</default>

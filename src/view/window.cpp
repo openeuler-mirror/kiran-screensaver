@@ -80,7 +80,7 @@ void Window::setScreen(QScreen *screen)
     {
         setObjectName(QString("screen_background_%1").arg(screen->name()));
         connect(screen, &QScreen::geometryChanged,
-                this, &Window::handleScreenGeometryChanged);
+                this, &Window::handleScreenGeometryChanged );
     }
     else
     {

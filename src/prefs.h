@@ -30,6 +30,7 @@ namespace ScreenSaver
 {
 class Prefs : public QObject
 {
+    Q_OBJECT
 public:
     static Prefs* getInstance();
     ~Prefs() override;
@@ -48,8 +49,11 @@ public:
 
     QString getLockerPluginPath() const;
 
+signals:
+    void idleActivationLockChanged(bool idleActivationLock);
+
 private:
-    //void setIdleActivationLock(bool idleActivationLock);
+    void setIdleActivationLock(bool idleActivationLock);
     void setCanLogout(bool canLogout);
     void setCanUserSwitch(bool canUserSwitch);
     void setEnableAnimation(bool enableAnimation);
