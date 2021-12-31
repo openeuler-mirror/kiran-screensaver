@@ -42,10 +42,10 @@ ScreenManager::ScreenManager(Fade *fade,
     if (m_prefs != nullptr)
     {
         m_enableAnimation = m_prefs->getEnableAnimation();
-        m_idleActivationLock = m_prefs->getIdleActivationLock();
+        //m_idleActivationLock = m_prefs->getIdleActivationLock();
     }
 
-    QCoreApplication::instance()->installEventFilter(this);
+    QApplication::instance()->installEventFilter(this);
 }
 
 ScreenManager::~ScreenManager()
@@ -260,14 +260,15 @@ bool ScreenManager::activate()
     // 创建解锁框,屏保框
     m_screensaver = new Screensaver(m_enableAnimation, nullptr);
 
-    if (m_idleActivationLock)
-    {
+    //NOTE:空闲是否锁定屏幕控制权交由IdleWatcher决定，若IdleWatcher发出空闲信号，则锁定屏幕
+//    if (m_idleActivationLock) // 若开启空闲时锁定屏幕,创建解锁框
+//    {
         if (!setLockActive(true))
         {
             delete m_screensaver;
             return false;
         }
-    }
+//    }
 
     // 获取桌面壁纸路径
     QString backgroundPath;
@@ -371,9 +372,10 @@ bool ScreenManager::eventFilter(QObject *watched, QEvent *event)
     return QObject::eventFilter(watched, event);
 }
 
+//NOTE:在事件过滤之中删除某些控件并且该控件同时是事件的接收者需要过滤该事件，避免崩溃
 bool ScreenManager::eventFilterActivate(QObject *watched, QEvent *event)
 {
-    if (!m_active)
+    if ( !m_active || (event->type()!=QEvent::MouseButtonPress && event->type()!=QEvent::KeyPress) )
         return false;
 
     // 若解锁框已被激活　按键和鼠标事件触发解锁框显示
@@ -388,6 +390,7 @@ bool ScreenManager::eventFilterActivate(QObject *watched, QEvent *event)
         else if (!getLockActive())
         {
             emit sigReqDeactivated();
+            return true;
         }
     }
     else if (event->type() == QEvent::KeyPress)
@@ -396,6 +399,7 @@ bool ScreenManager::eventFilterActivate(QObject *watched, QEvent *event)
         if (!getLockActive())
         {
             emit sigReqDeactivated();
+            return true;
         }
         else
         {

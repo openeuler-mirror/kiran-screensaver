@@ -121,10 +121,10 @@ private:
     // 当前显示内容的背景窗口
     Window* m_currentWindow = nullptr;
     // 屏保界面
-    Screensaver* m_screensaver;
+    Screensaver* m_screensaver = nullptr;
     // 解锁框界面
-    PluginInterface* m_lockerPluginInterface;
-    LockerInterface* m_lockerInterface;
+    PluginInterface* m_lockerPluginInterface = nullptr;
+    LockerInterface* m_lockerInterface = nullptr;
 };
 }  // namespace ScreenSaver
 }  // namespace Kiran
