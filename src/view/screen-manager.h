@@ -91,17 +91,18 @@ private:
     void destroyWindows();
 
     void setBackgroundWindowBlured(Window* window);
+
 private slots:
     void handleScreenAdded(QScreen* screen);
     void handleScreenRemoved(QScreen* screen);
     void handleWindowMouseEnter();
+    void handleAppearancePropertiesChanged(QString property,QVariantMap map,QStringList list);
 
 private:
     // kiran-screensaver配置项
     Prefs* m_prefs = nullptr;
     // 屏幕淡出接口实现
     Fade* m_fade = nullptr;
-
     // 是否启用动画
     bool m_enableAnimation = false;
     // 空闲时激活锁定

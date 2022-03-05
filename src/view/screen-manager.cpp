@@ -45,6 +45,38 @@ ScreenManager::ScreenManager(Fade *fade,
         //m_idleActivationLock = m_prefs->getIdleActivationLock();
     }
 
+
+    QString backgroundPath;
+    if( QDBusConnection::sessionBus().interface()->isServiceRegistered("com.kylinsec.Kiran.SessionDaemon.Appearance") )
+    {
+        KiranAppearance appearanceProxy("com.kylinsec.Kiran.SessionDaemon.Appearance",
+                                        "/com/kylinsec/Kiran/SessionDaemon/Appearance",
+                                        QDBusConnection::sessionBus());
+        QDBusConnection::sessionBus().connect(appearanceProxy.service(),
+                                              appearanceProxy.path(),
+                                              "org.freedesktop.DBus.Properties","PropertiesChanged",
+                                              this,SLOT(handleAppearancePropertiesChanged(QString,QVariantMap,QStringList)));
+        backgroundPath = appearanceProxy.lock_screen_background();
+    }
+    else
+    {
+        auto mateSettings = new QGSettings("org.mate.background",QByteArray(),this);
+        connect(mateSettings,&QGSettings::changed,[this,mateSettings](const QString& key){
+            if( key == "pictureFilename")
+            {
+                QString value = mateSettings->property("pictureFilename").toString();
+                if( !m_background.load(value) )
+                {
+                    KLOG_WARNING() << "can't load background," << value;
+                }
+            }
+        });
+        backgroundPath = mateSettings->property("pictureFilename").toString();
+    }
+    if( !m_background.load(backgroundPath) )
+    {
+        KLOG_WARNING() << "can't load background," << backgroundPath;
+    }
     QApplication::instance()->installEventFilter(this);
 }
 
@@ -270,26 +302,6 @@ bool ScreenManager::activate()
         }
 //    }
 
-    // 获取桌面壁纸路径
-    QString backgroundPath;
-    if( QDBusConnection::sessionBus().interface()->isServiceRegistered("com.kylinsec.Kiran.SessionDaemon.Appearance") )
-    {
-        KiranAppearance appearanceProxy("com.kylinsec.Kiran.SessionDaemon.Appearance",
-                                        "/com/kylinsec/Kiran/SessionDaemon/Appearance",
-                                        QDBusConnection::sessionBus());
-        backgroundPath = appearanceProxy.lock_screen_background();
-    }
-    else
-    {
-        QGSettings mateBackgroundSettings("org.mate.background");
-        backgroundPath = mateBackgroundSettings.get("picture-filename").toString();
-    }
-
-    if (!m_background.load(backgroundPath))
-    {
-        KLOG_WARNING() << "can't load background," << backgroundPath;
-    }
-
     // 创建背景窗口覆盖所有的屏幕
     createWindows();
 
@@ -507,5 +519,21 @@ void ScreenManager::setBackgroundWindowBlured(Window *window)
         {
             iter.value()->setBlurBackground(false);
         }
+    }
+}
+
+void ScreenManager::handleAppearancePropertiesChanged(QString property,QVariantMap map,QStringList list)
+{
+    for( auto iter=map.begin();iter!=map.end();iter++ )
+    {
+        QString property = iter.key();
+        if( property != "lock_screen_background" )
+            continue;
+        QString value = iter.value().toString();
+        if( !m_background.load(value) )
+        {
+            KLOG_WARNING() << "can't load background," << value;
+        }
+
     }
 }
