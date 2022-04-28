@@ -63,11 +63,11 @@ void Screensaver::setMaskState(bool maskState)
     if (m_masked)
     {
         emit masking();
-        m_floatingLabel->start();
+//        m_floatingLabel->start();
     }
     else
     {
-        m_floatingLabel->reset();
+//        m_floatingLabel->reset();
         if (m_stateMachine->isRunning())
         {
             //　若状态机在运行，发送状态改变信号
@@ -93,7 +93,7 @@ void Screensaver::init()
     m_floatingLabel->setFloatingParameter(FloatLabel::DIRECTION_UP,true,2600,24);
     m_floatingLabel->setText(tr("Click to unlock"));
     m_floatingLabel->setPixmap(QPixmap(":/kiran-screensaver/images/arrow.svg"),QSize(16,16));
-    m_floatingLabel->start();
+//    m_floatingLabel->start();
 
     initGraphicsEffect();
     setupStateMachine();
