@@ -14,6 +14,7 @@
 
 #include <kiran-application.h>
 #include <QTranslator>
+#include <QProcess>
 
 #include "manager.h"
 #include "qt5-log-i.h"
@@ -26,6 +27,8 @@ int main(int argc, char *argv[])
                   "kiran-screensaver");
 
     KiranApplication app(argc, argv);
+
+    int xsetProcess = QProcess::execute("xset",QStringList() << "s" << "0" << "0");
 
     auto translator = new QTranslator;
     if( translator->load(QLocale(),
