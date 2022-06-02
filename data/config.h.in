@@ -1,0 +1,6 @@
+#ifndef __CONFIG_H__
+#ifdef  __CONFIG_H__
+
+#define TRANSLATION_DIR_PATH "@TRANSLATIONS_INSTALL_DIR@"
+
+#endif //__CONFIG_H__
