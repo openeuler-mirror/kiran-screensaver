@@ -1,0 +1,3 @@
+[D-Bus Service]
+Name=com.kylinsec.Kiran.ScreenSaver
+Exec=@SCREENSAVER_BIN_DIR@/kiran-screensaver

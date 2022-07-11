@@ -1,0 +1,6 @@
+<RCC>
+    <!-- 图片 -->
+    <qresource prefix="/kiran-screensaver">
+        <file>images/arrow.svg</file>
+    </qresource>
+</RCC>
