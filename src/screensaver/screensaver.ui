@@ -17,7 +17,16 @@
    <property name="spacing">
     <number>0</number>
    </property>
-   <property name="margin">
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
     <number>0</number>
    </property>
    <item>
@@ -50,6 +59,7 @@
         <string notr="true">QLabel{
 	font-family: &quot;Noto Sans CJK SC Light&quot;;
 	font-size: 100px;
+	color: #fefefe;
 }</string>
        </property>
        <property name="text">
@@ -66,6 +76,7 @@
         <string notr="true">QLabel{
 	font-family: &quot;Noto Sans CJK SC Light&quot;;
 	font-size: 24px;
+	color: #fefefe;
 }</string>
        </property>
        <property name="text">
