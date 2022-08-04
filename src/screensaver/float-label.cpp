@@ -30,7 +30,7 @@ FloatLabel::FloatLabel(QWidget *parent)
     layout->addWidget(m_labelPixmap,Qt::AlignHCenter);
 
     m_labelText = new QLabel(this);
-    m_labelText->setStyleSheet("QLabel{font-family:Noto Sans CJK SC Light; font-size:14px;}");
+    m_labelText->setStyleSheet("QLabel{font-family:Noto Sans CJK SC Light; font-size:14px;color:#fefefe;}");
     m_labelText->setAlignment(Qt::AlignCenter);
     layout->addWidget(m_labelText,Qt::AlignHCenter);
 
