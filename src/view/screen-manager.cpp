@@ -276,8 +276,7 @@ void ScreenManager::deleteWindowForScreen(QScreen *screen)
             m_currentWindow = newScreenBackground;
         }
 
-        delete iter.value();
-        m_windowMap.erase(iter);
+        delete screenBackground;
     }
 }
 
