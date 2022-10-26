@@ -31,8 +31,7 @@
 
 QT_BEGIN_NAMESPACE
 // qt源代码中 src/widgets/effects/qpixmapfilter.cpp中定义模糊图像的方法
-Q_WIDGETS_EXPORT void qt_blurImage(QImage &blurImage, qreal radius, bool quality, int transposed = 0);
-//Q_WIDGETS_EXPORT void qt_blurImage(QPainter *p, QImage &blurImage, qreal radius, bool quality, bool alphaOnly, int transposed = 0);
+Q_WIDGETS_EXPORT void qt_blurImage(QPainter *p, QImage &blurImage, qreal radius, bool quality, bool alphaOnly, int transposed = 0);
 QT_END_NAMESPACE
 
 using namespace Kiran::ScreenSaver;
@@ -119,12 +118,17 @@ void Window::resizeEvent(QResizeEvent *event)
 
         QImage backgroundScaled = m_background.scaled(newImageSize, Qt::KeepAspectRatio, Qt::FastTransformation);
 
-        QImage backgroundBlur = backgroundScaled;
-        qt_blurImage(backgroundBlur, 35, false);
+        //作为qt_blurImage的第二个参数，会将QImageData进行改动，此处应将已调整大小的图片数据拷贝一份作为参数
+        QImage tempImage = backgroundScaled.copy();
+        QImage blurImage(backgroundScaled.size(), QImage::Format_ARGB32_Premultiplied);
+        QPainter painter(&blurImage);
+        painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
+        qt_blurImage(&painter, tempImage, 35, true, false);
 
         m_scaledBackground = backgroundScaled;
-        m_blurScaledBackground = backgroundBlur;
+        m_blurScaledBackground = blurImage;
     }
+
     QWidget::resizeEvent(event);
 }
 
