@@ -20,11 +20,7 @@
 #include <QDBusConnectionInterface>
 #include <QDateTime>
 #include <QDebug>
-#if (QT_VERSION > QT_VERSION_CHECK(5,9,2))
-#include <QStringLiteral>
-#else
 #include <QString>
-#endif
 
 #define NOT_SUPPORTED_METHOD                                        \
     {                                                               \
