@@ -16,8 +16,8 @@
 #include "fade-interface.h"
 #include "fade-xrandr.h"
 
-#include <QTimerEvent>
 #include <qt5-log-i.h>
+#include <QTimerEvent>
 
 // 淡出时间 ms
 #define FADE_TIMEOUT 2000
@@ -27,14 +27,14 @@
 using namespace Kiran::ScreenSaver;
 
 Fade::Fade(QObject *parent)
-    :QObject(parent)
+    : QObject(parent)
 {
-    if(FadeXrandr::checkForSupport())
+    if (FadeXrandr::checkForSupport())
     {
         m_fadeInterface = new FadeXrandr();
         KLOG_DEBUG() << "fade by xrandr...";
     }
-    else if(FadeGamma::checkForSupport())
+    else if (FadeGamma::checkForSupport())
     {
         m_fadeInterface = new FadeGamma();
         KLOG_DEBUG() << "fade by gamma...";
@@ -59,18 +59,18 @@ bool Fade::startAsync()
 {
     KLOG_DEBUG() << "start fade out";
 
-    if(!m_fadeInterface)
+    if (!m_fadeInterface)
     {
         KLOG_ERROR() << "fade out isn't supported";
         return false;
     }
 
-    if( m_active )
+    if (m_active)
     {
         stop();
     }
 
-    if( !m_fadeInterface->setup() )
+    if (!m_fadeInterface->setup())
     {
         KLOG_ERROR() << "can't setup fade!";
         return false;
@@ -79,14 +79,14 @@ bool Fade::startAsync()
     m_active = true;
     m_currentAlpha = 1.0;
 
-    ///总计多少步
-    uint16_t num_steps = FADE_TIMEOUT/1000.0 * FADE_STEP_REP_SECOND;
+    /// 总计多少步
+    uint16_t num_steps = FADE_TIMEOUT / 1000.0 * FADE_STEP_REP_SECOND;
 
-    ///每一步需要多少毫秒
-    uint16_t msecs_per_step = 1000/FADE_STEP_REP_SECOND;
+    /// 每一步需要多少毫秒
+    uint16_t msecs_per_step = 1000 / FADE_STEP_REP_SECOND;
 
-    ///每一步改变的alpha值
-    m_fadeStepAlpha = 1.0/(qreal)num_steps;
+    /// 每一步改变的alpha值
+    m_fadeStepAlpha = 1.0 / (qreal)num_steps;
 
     /// 开始定时器
     m_fadeTimerID = startTimer(msecs_per_step);
@@ -98,7 +98,7 @@ void Fade::stop()
 {
     KLOG_DEBUG() << "stopping fade";
 
-    if( m_fadeTimerID>0 )
+    if (m_fadeTimerID > 0)
     {
         killTimer(m_fadeTimerID);
     }
@@ -109,9 +109,9 @@ void Fade::stop()
 
 void Fade::timerEvent(QTimerEvent *event)
 {
-    if( event->timerId() == m_fadeTimerID )
+    if (event->timerId() == m_fadeTimerID)
     {
-        if( !handleFadeTimeout() )
+        if (!handleFadeTimeout())
         {
             killTimer(m_fadeTimerID);
             m_fadeTimerID = 0;
@@ -123,7 +123,7 @@ void Fade::timerEvent(QTimerEvent *event)
 
 bool Fade::handleFadeTimeout()
 {
-    if( m_currentAlpha < 0.01 )
+    if (m_currentAlpha < 0.01)
     {
         KLOG_DEBUG() << "current alpha < 0.01,close timer";
         return false;
@@ -133,7 +133,7 @@ bool Fade::handleFadeTimeout()
     KLOG_DEBUG() << "handle fade timer timeout,set current alpha:" << m_currentAlpha;
 
     bool bres = m_fadeInterface->setAlphaGamma(m_currentAlpha);
-    if(!bres)
+    if (!bres)
     {
         KLOG_DEBUG() << "can't set alpha gamma,close timer";
     }
@@ -151,16 +151,22 @@ void Fade::reset()
 {
     KLOG_DEBUG() << "reset fade";
 
-    //停止淡出
-    if(m_active)
+    if (!m_fadeInterface)
+    {
+        KLOG_ERROR() << "fade out isn't supported";
+        return;
+    }
+
+    // 停止淡出
+    if (m_active)
     {
         stop();
     }
 
-    //复位gamma
+    // 复位gamma
     m_currentAlpha = 1.0;
     m_fadeInterface->setAlphaGamma(m_currentAlpha);
 
-    //释放
+    // 释放
     m_fadeInterface->finish();
 }
