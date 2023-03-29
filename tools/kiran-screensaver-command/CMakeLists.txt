@@ -1,5 +1,5 @@
 set(TARGET_NAME "kiran-screensaver-command")
-set( CMD_TS_FILES "translations/kiran-screensaver-command.zh_CN.ts" )
+file(GLOB CMD_TS_FILES "translations/*.ts" )
 qt5_create_translation( CMD_QM_FILES ${CMAKE_CURRENT_SOURCE_DIR} ${CMD_TS_FILES} )
 
 add_executable(${TARGET_NAME} main.cpp ${CMD_QM_FILES})
