@@ -17,21 +17,14 @@
 
 #include <qt5-log-i.h>
 #include <xcb/xproto.h>
+#include <QMap>
 #include <QMutex>
 #include <QScopedPointer>
 #include <QX11Info>
 #include <memory>
-#include <QMap>
+#include <unistd.h>
 
 using namespace Kiran::ScreenSaver;
-
-static const QMap<int,QString> GrabStatusDescMap = {
-    {XCB_GRAB_STATUS_SUCCESS,"XCB_GRAB_STATUS_SUCCESS"},
-    {XCB_GRAB_STATUS_ALREADY_GRABBED,"XCB_GRAB_STATUS_ALREADY_GRABBED"},
-    {XCB_GRAB_STATUS_INVALID_TIME,"XCB_GRAB_STATUS_INVALID_TIME"},
-    {XCB_GRAB_STATUS_NOT_VIEWABLE,"XCB_GRAB_STATUS_NOT_VIEWABLE"},
-    {XCB_GRAB_STATUS_FROZEN,"XCB_GRAB_STATUS_FROZEN"}
-};
 
 struct FreeDeleter
 {
@@ -79,7 +72,7 @@ Grab* Grab::getInstance()
 
 Grab::~Grab()
 {
-//    delete m_invisibleWindow;
+    //    delete m_invisibleWindow;
 }
 
 Grab::Grab()
@@ -91,40 +84,63 @@ Grab::Grab()
 void Grab::releaseGrab()
 {
     KLOG_DEBUG() << "release grab";
-    xcb_ungrab_keyboard(QX11Info::connection(),XCB_TIME_CURRENT_TIME);
-    xcb_ungrab_pointer(QX11Info::connection(),XCB_TIME_CURRENT_TIME);
+    xcb_ungrab_keyboard(QX11Info::connection(), XCB_TIME_CURRENT_TIME);
+    xcb_ungrab_pointer(QX11Info::connection(), XCB_TIME_CURRENT_TIME);
 }
 
 bool Grab::grabWindow(WId wid, bool grabPointer)
 {
-    KLOG_DEBUG() << "grab to window" << wid;
     bool bRes = false;
-
-    XServerGrabber serverGrabber;
+    int retries = 12;
 
     releaseGrab();
 
-    if (grabPointer)
+    bool grabbed = false;
+    for (int i = 0; i < retries; i++)
     {
-        auto reply = KS_XCB_REPLY(xcb_grab_pointer,
-                                  QX11Info::connection(),
-                                  false,
-                                  wid,
-                                  (XCB_EVENT_MASK_BUTTON_PRESS | XCB_EVENT_MASK_BUTTON_RELEASE | XCB_EVENT_MASK_BUTTON_MOTION | XCB_EVENT_MASK_POINTER_MOTION | XCB_EVENT_MASK_ENTER_WINDOW | XCB_EVENT_MASK_LEAVE_WINDOW),
-                                  XCB_GRAB_MODE_ASYNC,
-                                  XCB_GRAB_MODE_ASYNC,
-                                  XCB_WINDOW_NONE,
-                                  XCB_CURSOR_NONE,
-                                  XCB_TIME_CURRENT_TIME);
-        bRes = reply && reply->status==XCB_GRAB_STATUS_SUCCESS;
-        if(!bRes)
+        grabbed = doGrab(wid,grabPointer);
+        if( grabbed )
         {
-            auto iter = GrabStatusDescMap.find(reply->status);
-            KLOG_ERROR() << "can't grab pointer,grab status:" << reply->status << (iter->isEmpty()?"":iter.value());
-            return false;
+            break;
         }
+        sleep(1);
     }
 
+    return grabbed;
+}
+
+bool Grab::grabRoot(bool grabPointer)
+{
+    KLOG_DEBUG() << "grab to root window";
+    return grabWindow(QX11Info::appRootWindow(), grabPointer);
+}
+
+// NOTE:若抓取失败，可以考虑模拟出Esc按键，取消掉开始菜单的抓取
+bool Grab::grabOffscreen(bool grabPointer)
+{
+    KLOG_DEBUG() << "grab to offscreen window";
+    return grabWindow(m_invisibleWindow->winId(), grabPointer);
+}
+
+QString Grab::getGrabError(int errCode)
+{
+    static const QMap<int, QString> GrabStatusDescMap = {
+        {XCB_GRAB_STATUS_SUCCESS, "XCB_GRAB_STATUS_SUCCESS"},
+        {XCB_GRAB_STATUS_ALREADY_GRABBED, "XCB_GRAB_STATUS_ALREADY_GRABBED"},
+        {XCB_GRAB_STATUS_INVALID_TIME, "XCB_GRAB_STATUS_INVALID_TIME"},
+        {XCB_GRAB_STATUS_NOT_VIEWABLE, "XCB_GRAB_STATUS_NOT_VIEWABLE"},
+        {XCB_GRAB_STATUS_FROZEN, "XCB_GRAB_STATUS_FROZEN"}};
+
+    auto iter = GrabStatusDescMap.find(errCode);
+    return iter == GrabStatusDescMap.end() ? "XCB_GRAB_STATUS_OTHER" : iter.value();
+}
+
+bool Grab::doGrab(WId wid, bool grabPointer)
+{
+    XServerGrabber serverGrabber;
+    bool bRes = false;
+
+    // grab keyboard
     auto reply = KS_XCB_REPLY(xcb_grab_keyboard,
                               QX11Info::connection(),
                               true,
@@ -132,27 +148,38 @@ bool Grab::grabWindow(WId wid, bool grabPointer)
                               XCB_TIME_CURRENT_TIME,
                               XCB_GRAB_MODE_ASYNC,
                               XCB_GRAB_MODE_ASYNC);
-    bRes = reply && reply->status==XCB_GRAB_STATUS_SUCCESS;
-    if(!bRes && grabPointer)
+
+    bRes = reply && reply->status == XCB_GRAB_STATUS_SUCCESS;
+    if (!bRes)
     {
-        auto iter = GrabStatusDescMap.find(reply->status);
-        KLOG_DEBUG() << "can't grab keyboard,grab status:" << reply->status << (iter->isEmpty()?"":iter.value());
-        xcb_ungrab_pointer(QX11Info::connection(),XCB_TIME_CURRENT_TIME);
-        return false;
+        int errCode = reply ? reply->status:-1;
+        KLOG_WARNING() << "grab keyboard to" << wid << "failed!" << getGrabError(errCode);
+        return bRes;
     }
 
-    return true;
-}
+    // grab pointer
+    if (grabPointer)
+    {
+        auto reply = KS_XCB_REPLY(xcb_grab_pointer,
+                                  QX11Info::connection(),
+                                  false,
+                                  wid,
+                                  (XCB_EVENT_MASK_BUTTON_PRESS | XCB_EVENT_MASK_BUTTON_RELEASE |
+                                   XCB_EVENT_MASK_BUTTON_MOTION | XCB_EVENT_MASK_POINTER_MOTION |
+                                   XCB_EVENT_MASK_ENTER_WINDOW | XCB_EVENT_MASK_LEAVE_WINDOW),
+                                  XCB_GRAB_MODE_ASYNC,
+                                  XCB_GRAB_MODE_ASYNC,
+                                  XCB_WINDOW_NONE,
+                                  XCB_CURSOR_NONE,
+                                  XCB_TIME_CURRENT_TIME);
+        bRes = reply && reply->status == XCB_GRAB_STATUS_SUCCESS;
+        if (!bRes)
+        {
+            int errCode = reply ? reply->status:1;
+            KLOG_WARNING() << "grab pointer to" << wid << "failed!" << getGrabError(errCode);
+            xcb_ungrab_pointer(QX11Info::connection(), XCB_TIME_CURRENT_TIME);
+        }
+    }
 
-bool Grab::grabRoot(bool grabPointer)
-{
-    KLOG_DEBUG() << "grab to root window";
-    return grabWindow(QX11Info::appRootWindow(),grabPointer);
-}
-
-//NOTE:若抓取失败，可以考虑模拟出Esc按键，取消掉开始菜单的抓取
-bool Grab::grabOffscreen(bool grabPointer)
-{
-    KLOG_DEBUG() << "grab to offscreen window";
-    return grabWindow(m_invisibleWindow->winId(),grabPointer);
+    return bRes;
 }
