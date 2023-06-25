@@ -47,6 +47,10 @@ public:
     bool grabOffscreen(bool grabPointer = true);
 
 private:
+    QString getGrabError(int errCode);
+    bool doGrab(WId wid,bool grabPointer = true);
+
+private:
     InvisibleWindow* m_invisibleWindow = nullptr;
     WId m_grabWID = 0;
 };
