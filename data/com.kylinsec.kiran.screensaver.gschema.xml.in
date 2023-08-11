@@ -2,7 +2,7 @@
 <schemalist>
     <schema id="com.kylinsec.kiran.screensaver" path="/com/kylinsec/kiran/screensaver/">
         <key name="screensaver-locker" type="s">
-            <default>"/usr/lib64/kiran-screensaver/libkiran-screensaver-dialog.so"</default>
+            <default>"@SCREENSAVER_PLUGIN_DIR@/libkiran-screensaver-dialog.so"</default>
         </key>
 
         <key name="idle-activation-lock" type="b">
