@@ -120,4 +120,7 @@ install(FILES ${DEVEL_HEADER} DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTAL
 #install(FILES ${CMAKE_BINARY_DIR}/com.kylinsec.Kiran.ScreenSaver.service DESTINATION ${DBUS_SERVICE_INSTALL_DIR})
 install(FILES data/kiran-screensaver.desktop DESTINATION ${XDG_AUTO_START_DIR})
 install(FILES data/kiran-screensaver DESTINATION /${CMAKE_INSTALL_SYSCONFDIR}/pam.d/)
-install(FILES data/com.kylinsec.kiran.screensaver.gschema.xml DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/glib-2.0/schemas/)
+
+set(SCREENSAVER_PLUGIN_DIR ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/kiran-screensaver)
+configure_file(data/com.kylinsec.kiran.screensaver.gschema.xml.in ${CMAKE_BINARY_DIR}/com.kylinsec.kiran.screensaver.gschema.xml )
+install(FILES ${CMAKE_BINARY_DIR}/com.kylinsec.kiran.screensaver.gschema.xml DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/glib-2.0/schemas/)
