@@ -177,7 +177,7 @@ bool Grab::doGrab(WId wid, bool grabPointer)
         {
             int errCode = reply ? reply->status:1;
             KLOG_WARNING() << "grab pointer to" << wid << "failed!" << getGrabError(errCode);
-            xcb_ungrab_pointer(QX11Info::connection(), XCB_TIME_CURRENT_TIME);
+            xcb_ungrab_keyboard(QX11Info::connection(), XCB_TIME_CURRENT_TIME);
         }
     }
 
