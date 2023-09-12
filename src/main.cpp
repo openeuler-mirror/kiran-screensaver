@@ -28,6 +28,13 @@ int main(int argc, char *argv[])
 
     KiranApplication app(argc, argv);
 
+    //NOTE:
+    // #15523
+    // xsmp QueryEndSession 会话询问退出阶段
+    // QxcbSessionManager -> QGuiApplicationPrivate::commitData将会尝试关闭所有窗口，导致进程退出
+    // 屏保服务需加入该标识，窗口全部关闭时也不退出
+    QGuiApplication::setQuitOnLastWindowClosed(false);
+
     int xsetProcess = QProcess::execute("xset",QStringList() << "s" << "0" << "0");
 
     auto translator = new QTranslator;

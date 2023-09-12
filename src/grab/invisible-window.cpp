@@ -26,3 +26,9 @@ InvisibleWindow::InvisibleWindow(QWidget *parent)
 InvisibleWindow::~InvisibleWindow()
 {
 }
+
+void InvisibleWindow::closeEvent(QCloseEvent *event)
+{
+    emit windowClosed();
+    QWidget::closeEvent(event);
+}
