@@ -30,6 +30,12 @@ class InvisibleWindow : public QWidget
 public:
     InvisibleWindow(QWidget* parent = nullptr);
     ~InvisibleWindow();
+
+signals:
+    void windowClosed();
+
+protected:
+    void closeEvent(QCloseEvent *event) override;
 };
 }  // namespace ScreenSaver
 }  // namespace Kiran
