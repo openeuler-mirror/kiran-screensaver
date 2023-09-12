@@ -18,7 +18,7 @@
 #include <QWindow>
 
 
-
+class QTimer;
 namespace Kiran
 {
 namespace ScreenSaver
@@ -53,6 +53,7 @@ private:
 private:
     InvisibleWindow* m_invisibleWindow = nullptr;
     WId m_grabWID = 0;
+    QTimer* m_recreateInvisibleWindowTimer;
 };
 }  // namespace ScreenSaver
 }  // namespace Kiran
