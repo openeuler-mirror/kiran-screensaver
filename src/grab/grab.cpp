@@ -23,6 +23,7 @@
 #include <QX11Info>
 #include <memory>
 #include <unistd.h>
+#include <QTimer>
 
 using namespace Kiran::ScreenSaver;
 
@@ -72,13 +73,31 @@ Grab* Grab::getInstance()
 
 Grab::~Grab()
 {
-    //    delete m_invisibleWindow;
+    delete m_recreateInvisibleWindowTimer;
+    delete m_invisibleWindow;
 }
 
 Grab::Grab()
 {
     m_invisibleWindow = new InvisibleWindow;
     m_invisibleWindow->show();
+
+    //NOTE:
+    // #15523
+    // xsmp  SmSaveGlobal 询问退出阶段, QGuiApplicationPrivate::commitData会尝试关闭所有窗口
+    // 该点会导致invisible window close
+    // 通过感知close事件后，重新拉取invisible window避免注销取消后，无法抓取输入到离屏窗口之上的问题
+    m_recreateInvisibleWindowTimer = new QTimer;
+    m_recreateInvisibleWindowTimer->setSingleShot(true);
+    m_recreateInvisibleWindowTimer->setInterval(0);
+
+    QObject::connect(m_recreateInvisibleWindowTimer,&QTimer::timeout,[this](){
+        this->m_invisibleWindow->show();
+    });
+
+    QObject::connect(m_invisibleWindow,&InvisibleWindow::windowClosed,[this](){
+        this->m_recreateInvisibleWindowTimer->start();
+    });
 }
 
 void Grab::releaseGrab()
