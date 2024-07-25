@@ -19,6 +19,7 @@
 #include <QWidget>
 
 class QPropertyAnimation;
+class QTimer;
 namespace Kiran
 {
 namespace ScreenSaver
@@ -46,6 +47,7 @@ public:
     // 设置显示背景图
     void setBackground(const QImage& background);
 
+    void raiseDelay();
 signals:
     void mouseEnter();
 
@@ -71,6 +73,8 @@ private:
     QImage m_background;
     QImage m_scaledBackground;
     QImage m_blurScaledBackground;
+
+    QTimer* m_delayRaiseTimer = nullptr;
 };
 }  // namespace ScreenSaver
 }  // namespace Kiran

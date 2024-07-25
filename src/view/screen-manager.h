@@ -34,6 +34,7 @@ class Screensaver;
 class Prefs;
 class PluginInterface;
 class LockerInterface;
+class VisibilityMonitor;
 class ScreenManager : public QObject, public Interface
 {
     Q_OBJECT
@@ -126,6 +127,8 @@ private:
     // 解锁框界面
     PluginInterface* m_lockerPluginInterface = nullptr;
     LockerInterface* m_lockerInterface = nullptr;
+
+    VisibilityMonitor* m_visibilityMonitor = nullptr;
 };
 }  // namespace ScreenSaver
 }  // namespace Kiran

@@ -74,7 +74,6 @@ Grab* Grab::getInstance()
 Grab::~Grab()
 {
     delete m_recreateInvisibleWindowTimer;
-    delete m_invisibleWindow;
 }
 
 Grab::Grab()
