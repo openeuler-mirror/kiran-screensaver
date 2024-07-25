@@ -15,12 +15,13 @@
 #include "animation-define.h"
 #include "fade.h"
 #include "grab.h"
+#include "kiran_appearance_proxy.h"
 #include "locker-interface.h"
 #include "plugin-interface.h"
 #include "prefs.h"
 #include "screensaver/screensaver.h"
+#include "visibility-monitor.h"
 #include "window.h"
-#include "kiran_appearance_proxy.h"
 
 #include <qt5-log-i.h>
 #include <QApplication>
@@ -78,6 +79,28 @@ ScreenManager::ScreenManager(Fade *fade,
         KLOG_WARNING() << "can't load background," << backgroundPath;
     }
     QApplication::instance()->installEventFilter(this);
+
+    m_visibilityMonitor = VisibilityMonitor::instance();
+    connect(m_visibilityMonitor, &VisibilityMonitor::visibilityStateChanged,
+            [this](WId wid, VisibilityMonitor::VisibilityState state)
+            {
+                // 窗口完全可见，不关注
+                if ( state == VisibilityMonitor::VISIBILITY_UNOBSCURED )
+                {
+                    return;
+                }
+
+                for (auto iter : m_windowMap)
+                {
+                    if ((iter->winId() == wid))
+                    {
+                        KLOG_INFO() << iter->objectName() << state << ",raise it.";
+                        // 延迟窗口的raise操作，避免段时间多次事件
+                        iter->raiseDelay();
+                        break;
+                    }
+                }
+            });
 }
 
 ScreenManager::~ScreenManager()
@@ -248,8 +271,10 @@ Window *ScreenManager::createWindowForScreen(QScreen *screen)
 
     window->setScreen(screen);
     window->setBackground(m_background);
+    m_visibilityMonitor->monitorWindow(window->winId());
 
     window->show();
+    window->raise();
 
     m_windowMap.insert(screen, window);
 

@@ -12,7 +12,6 @@
  * Author:     liuxinhao <liuxinhao@kylinos.com.cn>
  */
 
-
 #include "window.h"
 #include "animation-define.h"
 
@@ -21,9 +20,10 @@
 #include <QProcess>
 #include <QResizeEvent>
 #include <QScreen>
+#include <QTimerEvent>
 #include <QWindow>
 #include <QtMath>
-#include <QTimerEvent>
+#include <QTimer>
 
 #include <qt5-log-i.h>
 #include <QGraphicsBlurEffect>
@@ -44,6 +44,7 @@ Window::Window(bool enableAnimation, QScreen *screen)
     setScreen(screen);
     setWindowFlags(Qt::BypassWindowManagerHint | Qt::FramelessWindowHint |
                    Qt::CustomizeWindowHint | Qt::NoDropShadowWindowHint);
+    setAttribute(Qt::WA_AlwaysStackOnTop);
 
     if (m_enableAnimation)
     {
@@ -58,6 +59,14 @@ Window::Window(bool enableAnimation, QScreen *screen)
          */
         m_blurAnimation->setEndValue(0.9);
     }
+
+    m_delayRaiseTimer = new QTimer(this);
+    m_delayRaiseTimer->setInterval(100);
+    m_delayRaiseTimer->setSingleShot(true);
+    connect(m_delayRaiseTimer,&QTimer::timeout,this,[this](){
+        raise();
+        KLOG_INFO() << objectName() << "delay raised";
+    });
 }
 
 Window::~Window()
@@ -79,7 +88,7 @@ void Window::setScreen(QScreen *screen)
     {
         setObjectName(QString("screen_background_%1").arg(screen->name()));
         connect(screen, &QScreen::geometryChanged,
-                this, &Window::handleScreenGeometryChanged );
+                this, &Window::handleScreenGeometryChanged);
     }
     else
     {
@@ -103,7 +112,7 @@ void Window::setBackground(const QImage &background)
 
 void Window::resizeEvent(QResizeEvent *event)
 {
-    //由原始图片拉升已获得更好的显示效果
+    // 由原始图片拉升已获得更好的显示效果
     if (!m_background.isNull())
     {
         QSize minSize = event->size();
@@ -118,7 +127,7 @@ void Window::resizeEvent(QResizeEvent *event)
 
         QImage backgroundScaled = m_background.scaled(newImageSize, Qt::KeepAspectRatio, Qt::FastTransformation);
 
-        //作为qt_blurImage的第二个参数，会将QImageData进行改动，此处应将已调整大小的图片数据拷贝一份作为参数
+        // 作为qt_blurImage的第二个参数，会将QImageData进行改动，此处应将已调整大小的图片数据拷贝一份作为参数
         QImage tempImage = backgroundScaled.copy();
         QImage blurImage(backgroundScaled.size(), QImage::Format_ARGB32_Premultiplied);
         QPainter painter(&blurImage);
@@ -135,7 +144,7 @@ void Window::resizeEvent(QResizeEvent *event)
 void Window::paintEvent(QPaintEvent *event)
 {
     QPainter painter(this);
-    painter.setRenderHints(QPainter::SmoothPixmapTransform|QPainter::Antialiasing);
+    painter.setRenderHints(QPainter::SmoothPixmapTransform | QPainter::Antialiasing);
 
     // 绘制背景
     if (!m_scaledBackground.isNull())
@@ -213,14 +222,19 @@ bool Window::getBlurBackground()
 
 void Window::timerEvent(QTimerEvent *event)
 {
-    if(event->timerId() == m_animationDelayTimerID)
+    if (event->timerId() == m_animationDelayTimerID)
     {
-        m_blurAnimation->setDirection(m_blurBackground?QAbstractAnimation::Forward:QAbstractAnimation::Backward);
-        m_blurAnimation->setDuration(m_blurBackground?BACKGROUND_BLUR_ANIMATION_DURATION_MS:BACKGROUND_UNBLUR_ANIMATION_DURATION_MS);
+        m_blurAnimation->setDirection(m_blurBackground ? QAbstractAnimation::Forward : QAbstractAnimation::Backward);
+        m_blurAnimation->setDuration(m_blurBackground ? BACKGROUND_BLUR_ANIMATION_DURATION_MS : BACKGROUND_UNBLUR_ANIMATION_DURATION_MS);
         m_blurAnimation->start();
 
         killTimer(m_animationDelayTimerID);
         m_animationDelayTimerID = 0;
     }
     QObject::timerEvent(event);
+}
+
+void Window::raiseDelay()
+{
+    m_delayRaiseTimer->start();
 }
