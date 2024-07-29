@@ -81,6 +81,14 @@ ScreenManager::ScreenManager(Fade *fade,
     QApplication::instance()->installEventFilter(this);
 
     m_visibilityMonitor = VisibilityMonitor::instance();
+    connect(m_visibilityMonitor, &VisibilityMonitor::restackedNeedRaise,
+            [this]()
+            {
+                for (auto iter : m_windowMap)
+                {
+                    iter->raiseDelay();
+                }
+            });
     connect(m_visibilityMonitor, &VisibilityMonitor::visibilityStateChanged,
             [this](WId wid, VisibilityMonitor::VisibilityState state)
             {
@@ -271,7 +279,7 @@ Window *ScreenManager::createWindowForScreen(QScreen *screen)
 
     window->setScreen(screen);
     window->setBackground(m_background);
-    m_visibilityMonitor->monitorWindow(window->winId());
+    m_visibilityMonitor->monitor(window->winId());
 
     window->show();
     window->raise();
@@ -300,7 +308,7 @@ void ScreenManager::deleteWindowForScreen(QScreen *screen)
             moveContentToWindow(newScreenBackground);
             m_currentWindow = newScreenBackground;
         }
-
+        m_visibilityMonitor->unmonitor(screenBackground->winId());
         delete screenBackground;
     }
 }
@@ -386,6 +394,7 @@ void ScreenManager::destroyWindows()
     for (auto iter = m_windowMap.begin();
          iter != m_windowMap.end();)
     {
+        m_visibilityMonitor->unmonitor(iter.value()->winId());
         delete iter.value();
         m_windowMap.erase(iter++);
     }

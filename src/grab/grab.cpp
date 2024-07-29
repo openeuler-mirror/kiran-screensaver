@@ -14,7 +14,7 @@
 
 #include "grab.h"
 #include "invisible-window.h"
-
+#include "xcb-utils.h"
 #include <qt5-log-i.h>
 #include <xcb/xproto.h>
 #include <QMap>
@@ -26,33 +26,6 @@
 #include <QTimer>
 
 using namespace Kiran::ScreenSaver;
-
-struct FreeDeleter
-{
-    void operator()(void* pointer) const Q_DECL_NOTHROW
-    {
-        return std::free(pointer);
-    }
-};
-
-#define XCB_REPLY_CONNECTION_ARG(connection, ...) connection
-
-#define KS_XCB_REPLY(call, ...) \
-    std::unique_ptr<call##_reply_t, FreeDeleter>(call##_reply(XCB_REPLY_CONNECTION_ARG(__VA_ARGS__), call(__VA_ARGS__), nullptr))
-
-class XServerGrabber
-{
-public:
-    XServerGrabber()
-    {
-        xcb_grab_server(QX11Info::connection());
-    }
-    ~XServerGrabber()
-    {
-        xcb_ungrab_server(QX11Info::connection());
-        xcb_flush(QX11Info::connection());
-    }
-};
 
 Grab* Grab::getInstance()
 {
