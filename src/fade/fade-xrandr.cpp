@@ -13,7 +13,7 @@
  */
 
 #include "fade-xrandr.h"
-#include "xcbutils.h"
+#include "xcb-randr-utils.h"
 
 #include <qt5-log-i.h>
 #include <xcb/xcb.h>

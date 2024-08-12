@@ -17,6 +17,7 @@
 #include <QMutex>
 #include <QScopedPointer>
 #include <QSocketNotifier>
+#include "xcb-utils.h"
 
 namespace Kiran
 {
@@ -47,11 +48,47 @@ VisibilityMonitor::~VisibilityMonitor()
     }
 }
 
-void VisibilityMonitor::monitorWindow(WId wid)
+void VisibilityMonitor::monitor(WId wid)
 {
+    if (m_windows.contains(wid))
+    {
+        return;
+    }
+
     KLOG_INFO() << "visibility monitor:" << wid;
+
+    // 关闭混成时，XServer发出VisibilityNotify事件
+    // 直接订阅该事件用来监控窗口可见状态更高效
     uint32_t valueList[] = {XCB_EVENT_MASK_VISIBILITY_CHANGE};
     xcb_change_window_attributes(m_xcbConnection, wid, XCB_CW_EVENT_MASK, valueList);
+
+    // 订阅用来处理混成顺序的事件
+    // ConfigureNotify 以及 MapNotify
+    if (m_windows.isEmpty())
+    {
+        selectSubstructureNotify();
+    }
+    xcb_flush(m_xcbConnection);
+    m_windows << wid;
+}
+
+void VisibilityMonitor::unmonitor(WId wid)
+{
+    if (!m_windows.contains(wid))
+    {
+        return;
+    }
+
+    KLOG_INFO() << "visibility unmonitor:" << wid;
+
+    uint32_t valueList[] = {XCB_EVENT_MASK_NO_EVENT};
+    xcb_change_window_attributes(m_xcbConnection, wid, XCB_CW_EVENT_MASK, valueList);
+
+    m_windows.remove(wid);
+    if (m_windows.isEmpty())
+    {
+        unselectSubstructureNotify();
+    }
     xcb_flush(m_xcbConnection);
 }
 
@@ -85,6 +122,64 @@ void VisibilityMonitor::init()
     m_inited = true;
 }
 
+bool VisibilityMonitor::isInternal(WId window)
+{
+    bool bRes = false;
+    if (m_windows.contains(window) && window != QX11Info::appRootWindow())
+    {
+        bRes = true;
+    }
+    return bRes;
+}
+
+void VisibilityMonitor::selectSubstructureNotify()
+{
+    WId root = QX11Info::appRootWindow();
+
+    auto reply = KS_XCB_REPLY(xcb_get_window_attributes, m_xcbConnection, root);
+    if (reply == nullptr)
+    {
+        KLOG_WARNING() << "select SubstructureNotify failed,can't get root window attributes";
+        return;
+    }
+    if (reply->your_event_mask & XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY)
+    {
+        KLOG_DEBUG() << "SubstructureNotify already selected";
+        return;
+    }
+
+    uint32_t values[] = {XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY};
+    // uint32_t values[] = {XCB_EVENT_MASK_VISIBILITY_CHANGE};
+    xcb_change_window_attributes(m_xcbConnection, root,
+                                 XCB_CW_EVENT_MASK, values);
+
+    KLOG_INFO() << "select root window substructure notify event.";
+}
+
+void VisibilityMonitor::unselectSubstructureNotify()
+{
+    WId root = QX11Info::appRootWindow();
+
+    auto reply = KS_XCB_REPLY(xcb_get_window_attributes, m_xcbConnection, root);
+    if (reply == nullptr)
+    {
+        KLOG_WARNING() << "unselect SubstructureNotify failed,can't get root window attributes";
+        return;
+    }
+
+    if (!(reply->your_event_mask & XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY))
+    {
+        KLOG_DEBUG() << "SubstructureNotify already unselected";
+        return;
+    }
+
+    uint32_t values[] = {XCB_EVENT_MASK_NO_EVENT};
+    xcb_change_window_attributes(m_xcbConnection, root,
+                                 XCB_CW_EVENT_MASK, values);
+
+    KLOG_INFO() << "unselect root window substructure notify event.";
+}
+
 void VisibilityMonitor::handleXcbEvent()
 {
     int count = 0;
@@ -93,34 +188,68 @@ void VisibilityMonitor::handleXcbEvent()
         switch (event->response_type & ~0x80)
         {
         case XCB_VISIBILITY_NOTIFY:
-        {
-            xcb_visibility_notify_event_t* visibilityEvent = reinterpret_cast<xcb_visibility_notify_event_t*>(event);
-            uint8_t visibilityState = visibilityEvent->state;
-
-            if ((visibilityState >= VISIBILITY_UNOBSCURED) && (visibilityState < VISIBILITY_LAST))
-            {
-                VisibilityState eState = (VisibilityState)visibilityState;
-                KLOG_INFO() << "visibility state changed:"
-                            << visibilityEvent->window
-                            << "->" << eState;
-                emit visibilityStateChanged(visibilityEvent->window,eState);
-            }
-            else
-            {
-                KLOG_WARNING() << "unknow visibility state:" << visibilityEvent->window << visibilityState;
-            }
+            onVisibilityNotify(event);
             break;
-        }
+        case XCB_MAP_NOTIFY:
+            onMapNotify(event);
+            break;
+        case XCB_CONFIGURE_NOTIFY:
+            onConfigureNotify(event);
+            break;
         default:
             break;
         }
-
         ::free(event);
         count++;
     }
 
-    if(count)
+    if (count)
         xcb_flush(m_xcbConnection);
+}
+
+void VisibilityMonitor::onVisibilityNotify(xcb_generic_event_t* event)
+{
+    xcb_visibility_notify_event_t* visibilityEvent = reinterpret_cast<xcb_visibility_notify_event_t*>(event);
+    uint8_t visibilityState = visibilityEvent->state;
+
+    if ((visibilityState >= VISIBILITY_UNOBSCURED) && (visibilityState < VISIBILITY_LAST))
+    {
+        VisibilityState eState = (VisibilityState)visibilityState;
+        KLOG_INFO() << "visibility state changed:"
+                    << visibilityEvent->window
+                    << "->" << eState;
+        emit visibilityStateChanged(visibilityEvent->window, eState);
+    }
+    else
+    {
+        KLOG_WARNING() << "unknow visibility state:" << visibilityEvent->window << visibilityState;
+    }
+}
+
+void VisibilityMonitor::onMapNotify(xcb_generic_event_t* event)
+{
+    xcb_map_notify_event_t* mapEvent = reinterpret_cast<xcb_map_notify_event_t*>(event);
+
+    if (isInternal(mapEvent->window))
+    {
+        return;
+    }
+
+    KLOG_DEBUG() << "VisibilityMonitor: MapNotify" << mapEvent->window;
+    emit restackedNeedRaise();
+}
+
+void VisibilityMonitor::onConfigureNotify(xcb_generic_event_t* event)
+{
+    xcb_configure_notify_event_t* configureEvent = reinterpret_cast<xcb_configure_notify_event_t*>(event);
+
+    if (isInternal(configureEvent->window))
+    {
+        return;
+    }
+
+    KLOG_DEBUG() << "VisibilityMonitor: ConfigureNotify" << configureEvent->window;
+    emit restackedNeedRaise();
 }
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 15, 0))
