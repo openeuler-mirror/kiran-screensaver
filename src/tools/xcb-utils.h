@@ -16,6 +16,7 @@
 #include <QScopedPointer>
 #include <qt5-log-i.h>
 #include <memory> //std::unique_ptr
+#include <xcb/xcb.h>
 
 struct FreeDeleter
 {
