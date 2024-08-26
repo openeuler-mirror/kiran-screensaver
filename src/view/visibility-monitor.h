@@ -17,6 +17,7 @@
 #include <QWidget>
 #include <QX11Info>
 #include <QSet>
+#include <xcb/xcb.h>
 
 struct xcb_connection_t;
 struct xcb_ge_generic_event_t;
