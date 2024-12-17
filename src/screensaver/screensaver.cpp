@@ -106,7 +106,13 @@ void Screensaver::initGraphicsEffect()
     m_opacityEffect = new GraphicsGlowEffect(this);
     m_opacityEffect->setXOffset(2);
     m_opacityEffect->setYOffset(2);
-    m_opacityEffect->setBlurRadius(2);
+
+    // NOTE: 
+    // 由于该Effect会占用过多cpu资源
+    // 禁用GraphicsGlowEffect，在GraphicsGlowEffect::draw中会直接走drawSource
+    m_opacityEffect->setDistance(0);
+    m_opacityEffect->setBlurRadius(0);
+
     this->setGraphicsEffect(m_opacityEffect);
 }
 
