@@ -33,11 +33,14 @@ GraphicsGlowEffect::GraphicsGlowEffect(QObject *parent) :
 // 将控件的扩散效果绘制到指定的painter上。
 void GraphicsGlowEffect::draw(QPainter *painter)
 {
+    // 此处直接调用drawSource不会绘制source非布局中的内容，例如Screensaver中的FloatLabel
+#if 0
     // if nothing to show outside the item, just draw source
     if ((blurRadius() + distance()) <= 0) {
         drawSource(painter);
         return;
     }
+#endif
 
     PixmapPadMode mode = QGraphicsEffect::PadToEffectiveBoundingRect;
     QPoint offset;
@@ -50,6 +53,13 @@ void GraphicsGlowEffect::draw(QPainter *painter)
 
     qreal restoreOpacity = painter->opacity();
     painter->setOpacity(m_opacity);
+
+    // 模糊半径以及distance相加小于等于0，不做高斯模糊，只做透明度处理
+    // 直接绘制QGraphicsEffectSource中取来的Pixmap
+    if ((blurRadius() + distance()) <= 0) {
+        painter->drawPixmap(offset,sourcePx);
+        return;
+    }
 
     // save world transform
     QTransform restoreTransform = painter->worldTransform();
