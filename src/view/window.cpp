@@ -125,7 +125,7 @@ void Window::resizeEvent(QResizeEvent *event)
         newImageSize.setWidth(qFloor(imageSize.width() * factor + 0.5));
         newImageSize.setHeight(qFloor(imageSize.height() * factor + 0.5));
 
-        QImage backgroundScaled = m_background.scaled(newImageSize, Qt::KeepAspectRatio, Qt::FastTransformation);
+        QImage backgroundScaled = m_background.scaled(newImageSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
 
         // 作为qt_blurImage的第二个参数，会将QImageData进行改动，此处应将已调整大小的图片数据拷贝一份作为参数
         QImage tempImage = backgroundScaled.copy();
