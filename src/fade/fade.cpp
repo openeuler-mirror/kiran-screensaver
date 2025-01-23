@@ -32,12 +32,12 @@ Fade::Fade(QObject *parent)
     if (FadeXrandr::checkForSupport())
     {
         m_fadeInterface = new FadeXrandr();
-        KLOG_DEBUG() << "fade by xrandr...";
+        KLOG_INFO() << "fade by xrandr...";
     }
     else if (FadeGamma::checkForSupport())
     {
         m_fadeInterface = new FadeGamma();
-        KLOG_DEBUG() << "fade by gamma...";
+        KLOG_INFO() << "fade by gamma...";
     }
     else
     {

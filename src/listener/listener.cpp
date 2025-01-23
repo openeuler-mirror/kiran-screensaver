@@ -16,16 +16,25 @@
 #include "logind-session-monitor.h"
 
 #include <qt5-log-i.h>
+#include <QLoggingCategory>
 #include <QDBusConnection>
 #include <QDBusConnectionInterface>
 #include <QDateTime>
-#include <QDebug>
 #include <QString>
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 10, 0))
+#include <QRandomGenerator>
+#endif
 
 #define NOT_SUPPORTED_METHOD                                        \
     {                                                               \
-        KLOG_DEBUG("isn't supported!,ignore method call");          \
+        KLOG_DEBUG(qLcListener,"isn't supported!,ignore method call");          \
         sendErrorReply(QDBusError::NotSupported, "not supported!"); \
+    }
+
+#define TRACE_CALLER(tip)                                          \
+    {                                                              \
+        auto caller = callerInfo();                                \
+        KLOG_INFO(qLcListener).noquote() << tip << "by" << caller; \
     }
 
 #define SESSION_NAME "org.gnome.SessionManager"
@@ -43,6 +52,8 @@ typedef enum
     GSM_INHIBITOR_FLAG_SUSPEND = 1 << 2,
     GSM_INHIBITOR_FLAG_IDLE = 1 << 3
 } GsmInhibitorFlag;
+
+Q_LOGGING_CATEGORY(qLcListener,"kiran.ss.listener",QtMsgType::QtDebugMsg)
 
 namespace Kiran
 {
@@ -92,7 +103,7 @@ bool Listener::init()
                                                this,
                                                SLOT(handleDBusNameOwnerChanged(QString, QString, QString))))
     {
-        KLOG_WARNING() << "can't connect to DBus Session Daemon NameOwnerChanged signal:" << QDBusConnection::sessionBus().lastError();
+        KLOG_WARNING(qLcListener) << "connect to NameOwnerChanged error:" << QDBusConnection::sessionBus().lastError();
     }
 
     return true;
@@ -107,12 +118,12 @@ bool Listener::setSessionIdle(bool idle)
 {
     bool res;
 
-    KLOG_DEBUG("set session %s", (idle ? "idle" : "not idle"));
+    KLOG_INFO(qLcListener, "set session %s", (idle ? "idle" : "not idle"));
 
-    ///相同状态忽略
+    /// 相同状态忽略
     if (m_sessionIdle == idle)
     {
-        KLOG_DEBUG("trying to set idle state when already %s", (idle ? "idle" : "not idle"));
+        KLOG_DEBUG(qLcListener,"idle state already %s, ignore", (idle ? "idle" : "not idle"));
         return false;
     }
 
@@ -120,11 +131,11 @@ bool Listener::setSessionIdle(bool idle)
     {
         if (isInhibited())
         {
-            ///由非空闲->空闲被抑制，设置会话空闲失败
-            KLOG_DEBUG("try to set session idle failed,inhibited!");
+            /// 由非空闲->空闲被抑制，设置会话空闲失败
+            KLOG_INFO(qLcListener, "session idle inhibited");
             foreach (auto entry, m_inhibitedEntries)
             {
-                KLOG_DEBUG() << "\t" << entry;
+                KLOG_INFO(qLcListener) << "\t" << entry;
             }
             return false;
         }
@@ -165,6 +176,7 @@ void Listener::ShowMessage(const QString &summary, const QString &body, const QS
 
 void Listener::SetActive(bool value)
 {
+    TRACE_CALLER(QString("set active to %1").arg(value))
     setActiveStatus(value);
 }
 
@@ -175,7 +187,7 @@ bool Listener::GetActive()
 
 uint Listener::GetActiveTime()
 {
-    //获取当前时间戳-激活时间的时间戳
+    // 获取当前时间戳-激活时间的时间戳
     return m_activeStart;
 }
 
@@ -196,8 +208,16 @@ QStringList Listener::GetInhibitors()
 
 uint Listener::Inhibit(const QString &application_name, const QString &reason)
 {
-    QDBusConnection conn = connection();
-    QDBusMessage msg = message();
+    // 只接受DBus方法调用，不接收内部调用
+    if (!QDBusContext::calledFromDBus())
+    {
+        return -1;
+    }
+
+    TRACE_CALLER(QString("add inhibit(app:%1 reson:%2)").arg(application_name, reason));
+
+    QDBusConnection conn = QDBusContext::connection();
+    QDBusMessage msg = QDBusContext::message();
 
     QString senderName = conn.interface()->serviceOwner(msg.service()).value();
     uint senderUid = conn.interface()->serviceUid(msg.service()).value();
@@ -216,16 +236,19 @@ uint Listener::Inhibit(const QString &application_name, const QString &reason)
 
 void Listener::UnInhibit(uint cookie)
 {
+    TRACE_CALLER(QString("remove inhibit(cookie:%1)").arg(cookie))
     removeInhibitEntry(cookie);
 }
 
 void Listener::Lock()
 {
+    TRACE_CALLER("lock screen")
     emit sigLock();
 }
 
 void Listener::Unlock()
 {
+    TRACE_CALLER("unlock screen");
     setActiveStatus(false);
 }
 
@@ -236,19 +259,28 @@ void Listener::SimulateUserActivity()
 
 quint64 Listener::generateCookie()
 {
+    quint64 cookie = 0;
+    
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 10, 0))
+        cookie = QRandomGenerator::global()->bounded(1, INT_MAX);
+#else
     time_t randomSeed = time(nullptr);
     qsrand(randomSeed);
-    quint64 cookie = (quint64)qrand();
+    cookie = (quint64)qrand();
+#endif
+
     return cookie;
 }
 
 void Listener::handleLogindSessionLock()
 {
+    KLOG_INFO(qLcListener) << "recv lock screen request from logind session";
     emit sigLock();
 }
 
 void Listener::handleLogindSessionUnlock()
 {
+    KLOG_INFO(qLcListener) << "recv unlock screen request from logind session";
     setActiveStatus(false);
 }
 
@@ -256,9 +288,12 @@ bool Listener::setActiveStatus(bool active)
 {
     if (m_isActive == active)
     {
-        KLOG_DEBUG("trying to set maskState state when already: %s", active ? "maskState" : "inactive");
+        KLOG_DEBUG(qLcListener, "active status already: %s, ignore",
+                   active ? "maskState" : "inactive");
         return false;
     }
+
+    TRACE_CALLER(QString("set active status to %1").arg(active));
 
     /// 发送信号，KSManager接收该信号(Qt::DirectConnection连接方式),
     /// 通过判断是否允许激活屏保或激活屏保成功
@@ -267,7 +302,7 @@ bool Listener::setActiveStatus(bool active)
     emit sigActiveChanged(active, handled);
     if (!handled)
     {
-        KLOG_DEBUG("faded changed signal not handled,update maskState(%s) failed!", active ? "true" : "false");
+        KLOG_INFO(qLcListener, "active change to %s failed", active ? "true" : "false");
         return false;
     }
 
@@ -282,39 +317,62 @@ bool Listener::setActiveStatus(bool active)
     return true;
 }
 
-void Listener::handleDBusNameOwnerChanged(const QString &name, const QString &oldOwner, const QString &newOwner)
+void Listener::handleDBusNameOwnerChanged(const QString &name,
+                                          const QString &oldOwner,
+                                          const QString &newOwner)
 {
-    KLOG_DEBUG() << "name owner changed ->";
-    KLOG_DEBUG() << "\tname:" << name;
-    KLOG_DEBUG() << "\told owner:" << oldOwner;
-    KLOG_DEBUG() << "\tnew owner:" << newOwner;
+    if (oldOwner.isEmpty() || !newOwner.isEmpty())
+    {
+        return;
+    }
 
     // NameLost
-    if (!oldOwner.isEmpty() && newOwner.isEmpty())
+    for (auto iter = m_inhibitedEntries.begin(); iter != m_inhibitedEntries.end();)
     {
-        for (auto iter = m_inhibitedEntries.begin(); iter != m_inhibitedEntries.end();)
+        if (iter->connection != name)
         {
-            if (iter->connection == name)
-            {
-                auto removeInhibitItem = iter;
-                iter++;
-                // 抑制器的调用者退出，移除该调用者所创建的抑制器
-                removeInhibitEntry(removeInhibitItem.key());
-            }
-            else
-            {
-                iter++;
-            }
+            continue;
         }
+
+        auto removeInhibitItem = iter;
+        iter++;
+
+        KLOG_INFO(qLcListener) << "name lost" << name
+                               << ",remove inhibit entry" << removeInhibitItem.value();
+        removeInhibitEntry(removeInhibitItem.key());
     }
+}
+
+QString Kiran::ScreenSaver::Listener::callerInfo()
+{
+    QString callerDesc;
+
+    bool isDbusTriggered = QDBusContext::calledFromDBus();
+    if (Q_LIKELY(isDbusTriggered))
+    {
+        const QDBusConnection conn = QDBusContext::connection();
+        const QDBusMessage msg = message();
+
+        const auto connInterface = conn.interface();
+        QString senderName = connInterface->serviceOwner(msg.service()).value();
+        uint senderUid = connInterface->serviceUid(msg.service()).value();
+        uint senderPid = connInterface->servicePid(msg.service()).value();
+
+        callerDesc = QString("DBus Caller(%1,uid:%2,pid:%3)").arg(senderName).arg(senderUid).arg(senderPid);
+    }
+    else
+    {
+        callerDesc = QString("Internally Caller");
+    }
+
+    return callerDesc;
 }
 
 void Listener::addInhibitEntry(InhibitedEntry &entry)
 {
     auto iter = m_inhibitedEntries.insert(entry.cookie, entry);
     addSessionInhibit(iter.value());
-
-    KLOG_DEBUG() << "add inhibit entry ->" << iter.value();
+    KLOG_INFO(qLcListener) << "inhibit added: " << iter.value();
 }
 
 void Listener::removeInhibitEntry(quint64 cookie)
@@ -322,15 +380,16 @@ void Listener::removeInhibitEntry(quint64 cookie)
     auto iter = m_inhibitedEntries.find(cookie);
     if (iter == m_inhibitedEntries.end())
     {
-        KLOG_WARNING() << "can't find inhibit for cookie:" << cookie;
+        KLOG_WARNING(qLcListener) << "can't find inhibit:" << cookie;
         return;
     }
 
     const InhibitedEntry entry = iter.value();
+
     m_inhibitedEntries.remove(cookie);
     removeSessionInhibit(entry);
 
-    KLOG_DEBUG() << "remove inhibit entry ->" << entry;
+    KLOG_INFO(qLcListener) << "inhibit removed:" << entry;
 }
 
 void Listener::addSessionInhibit(Listener::InhibitedEntry &entry)
@@ -347,13 +406,13 @@ void Listener::addSessionInhibit(Listener::InhibitedEntry &entry)
 
     if (!reply.isValid())
     {
-        KLOG_WARNING() << "can't add session inhibitor," << reply.error();
+        KLOG_WARNING(qLcListener) << "add session inhibitor failed," << reply.error();
         entry.foreign_cookie = 0;
     }
     else
     {
-        KLOG_DEBUG() << reply.value();
         entry.foreign_cookie = reply.value();
+        KLOG_INFO(qLcListener) << "session inhibitor has been added" << entry;
     }
 }
 
@@ -369,6 +428,10 @@ void Listener::removeSessionInhibit(const Listener::InhibitedEntry &entry)
 
     if (!reply.isValid())
     {
-        KLOG_WARNING() << "can't uninhibit," << reply.error();
+        KLOG_WARNING(qLcListener) << "session uninhibit failed" << reply.error();
+    }
+    else
+    {
+        KLOG_INFO(qLcListener) << "session inhibitor has been deleted" << entry;
     }
 }

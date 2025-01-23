@@ -215,7 +215,7 @@ void VisibilityMonitor::onVisibilityNotify(xcb_generic_event_t* event)
     if ((visibilityState >= VISIBILITY_UNOBSCURED) && (visibilityState < VISIBILITY_LAST))
     {
         VisibilityState eState = (VisibilityState)visibilityState;
-        KLOG_INFO() << "visibility state changed:"
+        KLOG_DEBUG() << "visibility state changed:"
                     << visibilityEvent->window
                     << "->" << eState;
         emit visibilityStateChanged(visibilityEvent->window, eState);

@@ -175,18 +175,9 @@ void Manager::onWatcherIdleNoticeChanged(bool isEffect, bool& handled)
 {
     KLOG_DEBUG() << "handle idle notice changed: " << isEffect;
 
-    // 空闲时激活锁定配置项
-    bool activationEnabled = m_prefs->getIdleActivationLock();
-
-    // 从KSListener取出是否被抑制状态
-    bool inhibited = m_listener->isInhibited();;
-
-    // 屏保是否已被激活
-    bool isActivate = m_screenManager->getActive();
-
     if( isEffect ) ///空闲预告
     {
-        //抓取鼠标键盘输入输出（屏幕淡出时，可通过点击鼠标或敲击键盘取消，这个取消过程的相应不应该被传入桌面）,是否成功
+        //抓取鼠标键盘输入输出（屏幕淡出时，可通过点击鼠标或敲击键盘取消，这个取消过程的响应不应该被传入桌面）,是否成功
         if( !m_grab->grabOffscreen(true) )
         {
             KLOG_WARNING() << "grab pointer and keyboard offscreen failed!";

@@ -92,7 +92,7 @@ bool FadeXrandr::setup()
 
         if(crtcGamma.isNull() || crtcInfo.isNull())
         {
-            KLOG_WARNING() << "can't get crtcGamma info or crtc info" << crtc;
+            KLOG_WARNING() << "can't get crtc gamma info or crtc info" << crtc;
             continue;
         }
 

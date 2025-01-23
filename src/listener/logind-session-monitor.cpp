@@ -37,18 +37,18 @@ LogindSessionMonitor::~LogindSessionMonitor()
 
 bool LogindSessionMonitor::init()
 {
-    //NOTE:
-    // 偶发出现过从logind取出logind当前的session路径，报错未能找到该PID属于的session
-    // 这种情况下在开始菜单点开的终端里执行kiran-screensaver会出现
-    // 在caja右键打开的终端里执行不会出现
-    // 暂时未进行排查,是桌面环境哪个组件导致该问题发生
+    /**
+     * NOTE:
+     * DBus服务所拉起应用及其所拉起的子进程均无法关联上Session
+     * 例如，开始菜单通过DBus服务拉起，通过开始菜单拉起Terminal，再通过Terminal拉起kiran-screensaver将无法关联上Session
+     */
 
     //获取logind session dbus对象路径，用于监听dbus信号
     QDBusInterface loginInterface(LOGIND_SERVICE, LOGIND_PATH, LOGIND_MANAGER_INTERFACE, QDBusConnection::systemBus());
     QDBusReply<QDBusObjectPath> reply = loginInterface.call("GetSessionByPID", (uint32_t)0);
     if (!reply.isValid())
     {
-        KLOG_ERROR() << "can't get session dbus path!" << reply.error();
+        KLOG_ERROR() << "can't get session dbus path," << reply.error();
         return false;
     }
 
@@ -60,9 +60,10 @@ bool LogindSessionMonitor::init()
                                              LOGIND_SESSION_INTERFACE, "Unlock",
                                              this, SIGNAL(Unlock())))
     {
-        KLOG_ERROR() << "can't connect logind session Lock/Unlock signal!" << QDBusConnection::systemBus().lastError();
+        KLOG_ERROR() << "can't connect logind session Lock/Unlock signal," << QDBusConnection::systemBus().lastError();
         return false;
     }
 
+    KLOG_INFO() << " logind session Lock/Unlock signal is monitored";
     return true;
 }

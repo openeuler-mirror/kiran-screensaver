@@ -93,7 +93,7 @@ void Screensaver::init()
     m_floatingLabel->setFloatingParameter(FloatLabel::DIRECTION_UP,true,2600,24);
     m_floatingLabel->setText(tr("Click to unlock"));
     m_floatingLabel->setPixmap(QPixmap(":/kiran-screensaver/images/arrow.svg"),QSize(16,16));
-//    m_floatingLabel->start();
+    // m_floatingLabel->start();
 
     initGraphicsEffect();
     setupStateMachine();
