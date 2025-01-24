@@ -37,6 +37,8 @@ static const QMap<PresenceStatus,QString> PresenceStatusDescMap = {
     {PRESENCE_STATUS_IDLE,"idle"}
 };
 
+Q_LOGGING_CATEGORY(qLcIdleWatcher,"kiran.ss.idlewatcher",QtMsgType::QtDebugMsg)
+
 IdleWatcherMate::IdleWatcherMate(QObject *parent)
     : IdleWatcher(parent)
 {
@@ -52,7 +54,7 @@ bool IdleWatcherMate::init()
     QDBusConnection sessionBus = QDBusConnection::sessionBus();
     if (!sessionBus.isConnected())
     {
-        KLOG_ERROR() << "can't connect to session bus!";
+        KLOG_ERROR(qLcIdleWatcher) << "connect to session bus daemon failed";
         return false;
     }
 
@@ -62,15 +64,16 @@ bool IdleWatcherMate::init()
     m_presenceInterface = new GSMPresenceProxy("org.gnome.SessionManager", "/org/gnome/SessionManager/Presence", sessionBus, this);
     if (!connect(m_presenceInterface, &GSMPresenceProxy::StatusChanged, this, &IdleWatcherMate::slotPresenceStatusChanged))
     {
-        KLOG_ERROR() << "can't connect status changed signal!";
+        KLOG_ERROR(qLcIdleWatcher) << "connect to SessionManager for monitor session idle failed";
         return false;
     }
     if (!connect(m_presenceInterface, &GSMPresenceProxy::StatusTextChanged, this, &IdleWatcherMate::slotPresenceStatusTextChanged))
     {
-        KLOG_ERROR() << "can't connect status text changed signal!";
+        KLOG_ERROR(qLcIdleWatcher) << "connect to SessionManager StatustextChanged failed";
         return false;
     }
 
+    KLOG_INFO(qLcIdleWatcher) << "SessionManager idle status is monitored";
     return true;
 }
 
@@ -81,17 +84,17 @@ bool IdleWatcherMate::getIdleDetectionActive()
 
 bool IdleWatcherMate::setIdleDetectionActive(bool idleDetectionActive)
 {
-    KLOG_DEBUG() << "turning idle watcher: " << (idleDetectionActive ?"ON":"OFF");
+    KLOG_INFO(qLcIdleWatcher) << "turning idle watcher: " << (idleDetectionActive ?"ON":"OFF");
 
     if(idleDetectionActive == m_idleDetectionActive)
     {
-        KLOG_DEBUG() << "idle watcher is already" << (idleDetectionActive ?"idleDetectionActive":"inactive");
+        KLOG_DEBUG(qLcIdleWatcher) << "idle watcher is already" << (idleDetectionActive ?"idleDetectionActive":"inactive");
         return false;
     }
 
     if( !m_enabled )
     {
-        KLOG_DEBUG() << "idle watcher is disabled,cannot idleDetectionActive";
+        KLOG_WARNING(qLcIdleWatcher) << "idle watcher is disabled, set active status failed";
         return false;
     }
 
@@ -118,9 +121,11 @@ bool IdleWatcherMate::setEnabled(bool enabled)
 {
     if(enabled == m_enabled)
     {
-        KLOG_DEBUG() << "idle watcher is already" << (enabled?"enabled":"disabled");
+        KLOG_DEBUG(qLcIdleWatcher) << "idle watcher is already" << (enabled?"enabled":"disabled");
         return false;
     }
+    
+    KLOG_INFO(qLcIdleWatcher) << "set idle watcher enabled" << enabled;
 
     bool isActive = getIdleDetectionActive();
     if( !enabled && isActive )
@@ -135,13 +140,13 @@ bool IdleWatcherMate::setEnabled(bool enabled)
 void IdleWatcherMate::slotPresenceStatusChanged(uint status)
 {
     auto iter  = PresenceStatusDescMap.find((PresenceStatus)status);
-    KLOG_DEBUG() << "presence status changed: " << (iter==PresenceStatusDescMap.end()?"null":iter.value());
+    KLOG_INFO(qLcIdleWatcher) << "recv session manager presence status changed: " << (iter==PresenceStatusDescMap.end()?"null":iter.value());
     setStatus(status);
 }
 
 void IdleWatcherMate::slotPresenceStatusTextChanged(const QString &statusText)
 {
-    KLOG_DEBUG() << "presence status text changed: " << statusText;
+    KLOG_DEBUG(qLcIdleWatcher) << "presence status text changed: " << statusText;
     m_statusMsg = statusText;
 }
 
@@ -151,7 +156,7 @@ void IdleWatcherMate::setStatus(uint status)
 
     if (!m_idleDetectionActive)
     {
-        KLOG_DEBUG() << "not active,ignoring status changes";
+        KLOG_INFO(qLcIdleWatcher) << "not active, ignoring status changes";
         return;
     }
 
@@ -173,22 +178,25 @@ void IdleWatcherMate::setStatus(uint status)
 
     if (isIdle)
     {
-        // 设置空闲预告
+        // 设置空闲预告，通知外部处理（抓取鼠标,屏幕变暗淡出）
         if( !setIdleNotice(true) )
         {
             return;
         }
 
-        // 开启空闲定时器
+        // 开启空闲延时定时器, 定时器过后将正式进入空闲状态
         m_idleTimerID = startTimer(m_delayIdleTimeout);
     }
     else
     {
+        // 清理延时定时器
         if(m_idleTimerID!=0)
         {
             killTimer(m_idleTimerID);
             m_idleTimerID = 0;
         }
+
+        // 复位状态
         setIdle(false);
         setIdleNotice(false);
     }
@@ -198,22 +206,22 @@ bool IdleWatcherMate::setIdleNotice(bool notice)
 {
     bool  res = false;
 
-    if(notice == m_idleNotice)
+    if (notice == m_idleNotice)
     {
-        KLOG_DEBUG() << "idle notice no changes,ignore it";
+        KLOG_DEBUG(qLcIdleWatcher) << "idle notice no changes,ignore it";
         return res;
     }
 
+    KLOG_INFO(qLcIdleWatcher) << "idle notice changed: " << notice;
     emit IdleWatcher::idleNoticeChanged(notice,res);
 
     if(Q_LIKELY(res))
     {
-        KLOG_DEBUG() << "change idle notice state: " << notice;
         m_idleNotice = notice;
     }
     else
     {
-        KLOG_DEBUG() << "idle notice changed signal not handled:" << res;
+        KLOG_INFO(qLcIdleWatcher) << "idle notice has been denied";
     }
 
     return res;
@@ -225,20 +233,21 @@ bool IdleWatcherMate::setIdle(bool idle)
 
     if(idle == m_idle)
     {
-        KLOG_DEBUG() << "idle no changes,ignore it";
+        KLOG_DEBUG(qLcIdleWatcher) << "idle no changes,ignore it";
         return res;
     }
-
+    
+    KLOG_INFO(qLcIdleWatcher) << "change idle state: " << idle;
     emit IdleWatcher::idleChanged(idle,res);
 
     if(Q_LIKELY(res))
     {
-        KLOG_DEBUG() << "change idle state: " << idle;
+        KLOG_DEBUG(qLcIdleWatcher) << "change idle state: " << idle;
         m_idle = idle;
     }
     else
     {
-        KLOG_DEBUG() << "idle changed signal not handled:" << res;
+        KLOG_DEBUG(qLcIdleWatcher) << "idle changed signal not handled:" << res;
     }
 
     return res;

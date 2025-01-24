@@ -127,6 +127,9 @@ private slots:
     void handleDBusNameOwnerChanged(const QString &name, const QString &oldOwner, const QString &newOwner);
 
 private:
+    QString callerInfo();
+    
+private:
     bool m_isActive = false;
     bool m_sessionIdle = false;
     uint m_activeStart = 0;

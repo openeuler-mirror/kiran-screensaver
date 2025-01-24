@@ -65,12 +65,12 @@ bool Prefs::init()
     m_lockerPluginPath = m_screensaverSettings->get(KEY_SCREENSAVER_LOCKER).toString();
 
     ///输出设置项
-    KLOG_DEBUG() << "load kiran-screensaver prefs:";
-    KLOG_DEBUG() << "\t" KEY_IDLE_ACTIVATION_LOCK << m_idleActivationLock;
-    KLOG_DEBUG() << "\t" KEY_CAN_LOGOUT << m_canLogout;
-    KLOG_DEBUG() << "\t" KEY_CAN_USER_SWITCH << m_canUserSwitch;
-    KLOG_DEBUG() << "\t" KEY_ENABLE_ANIMATION << m_enableAnimation;
-    KLOG_DEBUG() << "\t" KEY_SCREENSAVER_LOCKER << m_lockerPluginPath;
+    KLOG_INFO() << "load kiran-screensaver prefs:";
+    KLOG_INFO() << "\t" KEY_IDLE_ACTIVATION_LOCK << m_idleActivationLock;
+    KLOG_INFO() << "\t" KEY_CAN_LOGOUT << m_canLogout;
+    KLOG_INFO() << "\t" KEY_CAN_USER_SWITCH << m_canUserSwitch;
+    KLOG_INFO() << "\t" KEY_ENABLE_ANIMATION << m_enableAnimation;
+    KLOG_INFO() << "\t" KEY_SCREENSAVER_LOCKER << m_lockerPluginPath;
 
     isInited = true;
     return true;
@@ -125,8 +125,9 @@ void Prefs::handleGSettingsChanged(const QString& key)
     if (boolIter != boolKeyMap.end())
     {
         *boolIter.value() = m_screensaverSettings->get(boolIter.key()).toBool();
+        KLOG_INFO() << "settings changed:" << key << *boolIter.value();
     }
-    qInfo() << "keyChanged" << key;
+
     if( key  == KEY_IDLE_ACTIVATION_LOCK )
     {
         emit idleActivationLockChanged(m_idleActivationLock);

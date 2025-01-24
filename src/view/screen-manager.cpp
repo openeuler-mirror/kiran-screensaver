@@ -37,8 +37,8 @@ using namespace Kiran::ScreenSaver;
 ScreenManager::ScreenManager(Fade *fade,
                              QObject *parent)
     : QObject(parent),
-      m_fade(fade),
-      m_prefs(Prefs::getInstance())
+      m_prefs(Prefs::getInstance()),
+      m_fade(fade)
 {
     if (m_prefs != nullptr)
     {
