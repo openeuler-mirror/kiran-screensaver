@@ -2,6 +2,6 @@ variables:
   RPM_BUILD_REQUIRES: 'gcc-c++ cmake qt5-qtbase-devel qt5-linguist qt5-qtx11extras-devel qt5-qtsvg-devel qt5-qtsvg-devel gsettings-qt-devel kiran-widgets-qt5-devel kiran-log-qt5-devel'
 
 include:
-  - project: 'os/gitlab-ci'
+  - project: 'os/ks-devops'
     ref: main
-    file: '/cmake/cxx.gitlab-ci.yml'
+    file: '/entrypoint/develop/cmake.yml'
