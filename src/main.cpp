@@ -13,8 +13,8 @@
  */
 
 #include <kiran-application.h>
-#include <QTranslator>
 #include <QProcess>
+#include <QTranslator>
 
 #include "manager.h"
 #include "qt5-log-i.h"
@@ -26,23 +26,25 @@ int main(int argc, char *argv[])
                   "kiran-screensaver",
                   "kiran-screensaver");
 
-    KiranApplication app(argc, argv);
-
-    //NOTE:
+    // NOTE:
     // #15523
     // xsmp QueryEndSession 会话询问退出阶段
     // QxcbSessionManager -> QGuiApplicationPrivate::commitData将会尝试关闭所有窗口，导致进程退出
-    // 屏保服务需加入该标识，窗口全部关闭时也不退出
+    // 不需要关闭窗口，所以禁用SessionManager
+    QCoreApplication::setAttribute(Qt::AA_DisableSessionManager);
+    // 窗口全部关闭时也不退出
     QGuiApplication::setQuitOnLastWindowClosed(false);
 
-    int xsetProcess = QProcess::execute("xset",QStringList() << "s" << "0" << "0");
+    KiranApplication app(argc, argv);
+
+    int xsetProcess = QProcess::execute("xset", QStringList() << "s" << "0" << "0");
 
     auto translator = new QTranslator;
-    if( translator->load(QLocale(),
+    if (translator->load(QLocale(),
                          "kiran-screensaver",
                          ".",
                          "/usr/share/kiran-screensaver/translations/",
-                         ".qm") )
+                         ".qm"))
     {
         app.installTranslator(translator);
     }
@@ -51,9 +53,8 @@ int main(int argc, char *argv[])
         qWarning() << "can't load translator";
     }
 
-
     Kiran::ScreenSaver::Manager manager;
-    if( !manager.init() )
+    if (!manager.init())
     {
         KLOG_ERROR() << "kiran-screensaver init failed! exit.";
         return EXIT_FAILURE;
