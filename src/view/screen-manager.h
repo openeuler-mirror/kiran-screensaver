@@ -23,7 +23,7 @@
 class QScreen;
 class QGSettings;
 class QStateMachine;
-
+class KiranAppearance;
 namespace Kiran
 {
 namespace ScreenSaver
@@ -92,6 +92,7 @@ private:
     void destroyWindows();
 
     void setBackgroundWindowBlured(Window* window);
+    void loadBackground();
 
 private slots:
     void handleScreenAdded(QScreen* screen);
@@ -102,6 +103,7 @@ private slots:
 private:
     // kiran-screensaver配置项
     Prefs* m_prefs = nullptr;
+    KiranAppearance* m_appearanceInterface = nullptr;
     // 屏幕淡出接口实现
     Fade* m_fade = nullptr;
     // 是否启用动画
