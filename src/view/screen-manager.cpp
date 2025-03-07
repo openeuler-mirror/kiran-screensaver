@@ -34,50 +34,38 @@
 
 using namespace Kiran::ScreenSaver;
 
+#define KIRAN_APPEARANCE_SERVICE "com.kylinsec.Kiran.SessionDaemon.Appearance"
+#define KIRAN_APPEARANCE_PATH "/com/kylinsec/Kiran/SessionDaemon/Appearance"
+
 ScreenManager::ScreenManager(Fade *fade,
                              QObject *parent)
     : QObject(parent),
-      m_fade(fade),
-      m_prefs(Prefs::getInstance())
+      m_prefs(Prefs::getInstance()),
+      m_fade(fade)
 {
     if (m_prefs != nullptr)
     {
         m_enableAnimation = m_prefs->getEnableAnimation();
-        //m_idleActivationLock = m_prefs->getIdleActivationLock();
+        // m_idleActivationLock = m_prefs->getIdleActivationLock();
     }
 
-
+    m_appearanceInterface = new KiranAppearance(KIRAN_APPEARANCE_SERVICE, KIRAN_APPEARANCE_PATH,
+                                                QDBusConnection::sessionBus(), this);
+    QDBusConnection::sessionBus().connect(m_appearanceInterface->service(),
+                                          m_appearanceInterface->path(),
+                                          "org.freedesktop.DBus.Properties", "PropertiesChanged",
+                                          this, SLOT(handleAppearancePropertiesChanged(QString, QVariantMap, QStringList)));
     QString backgroundPath;
-    if( QDBusConnection::sessionBus().interface()->isServiceRegistered("com.kylinsec.Kiran.SessionDaemon.Appearance") )
+    if (QDBusConnection::sessionBus().interface()->isServiceRegistered(KIRAN_APPEARANCE_SERVICE))
     {
-        KiranAppearance appearanceProxy("com.kylinsec.Kiran.SessionDaemon.Appearance",
-                                        "/com/kylinsec/Kiran/SessionDaemon/Appearance",
-                                        QDBusConnection::sessionBus());
-        QDBusConnection::sessionBus().connect(appearanceProxy.service(),
-                                              appearanceProxy.path(),
-                                              "org.freedesktop.DBus.Properties","PropertiesChanged",
-                                              this,SLOT(handleAppearancePropertiesChanged(QString,QVariantMap,QStringList)));
-        backgroundPath = appearanceProxy.lock_screen_background();
+        loadBackground();
     }
     else
     {
-        auto mateSettings = new QGSettings("org.mate.background",QByteArray(),this);
-        connect(mateSettings,&QGSettings::changed,[this,mateSettings](const QString& key){
-            if( key == "pictureFilename")
-            {
-                QString value = mateSettings->property("pictureFilename").toString();
-                if( !m_background.load(value) )
-                {
-                    KLOG_WARNING() << "can't load background," << value;
-                }
-            }
-        });
-        backgroundPath = mateSettings->property("pictureFilename").toString();
+        auto serviceWatcher = new QDBusServiceWatcher(KIRAN_APPEARANCE_SERVICE, QDBusConnection::sessionBus(), QDBusServiceWatcher::WatchForRegistration, this);
+        connect(serviceWatcher, &QDBusServiceWatcher::serviceRegistered, this, &ScreenManager::loadBackground);
     }
-    if( !m_background.load(backgroundPath) )
-    {
-        KLOG_WARNING() << "can't load background," << backgroundPath;
-    }
+
     QApplication::instance()->installEventFilter(this);
 
     m_visibilityMonitor = VisibilityMonitor::instance();
@@ -93,7 +81,7 @@ ScreenManager::ScreenManager(Fade *fade,
             [this](WId wid, VisibilityMonitor::VisibilityState state)
             {
                 // 窗口完全可见，不关注
-                if ( state == VisibilityMonitor::VISIBILITY_UNOBSCURED )
+                if (state == VisibilityMonitor::VISIBILITY_UNOBSCURED)
                 {
                     return;
                 }
@@ -118,7 +106,7 @@ ScreenManager::~ScreenManager()
 
 bool ScreenManager::init()
 {
-    //加载解锁框插件
+    // 加载解锁框插件
     QString lockerPluginPath = Prefs::getInstance()->getLockerPluginPath();
     QPluginLoader pluginLoader(lockerPluginPath);
     if (!pluginLoader.load())
@@ -130,7 +118,7 @@ bool ScreenManager::init()
     {
         KLOG_DEBUG() << "load" << pluginLoader.fileName() << "succeed!";
         PluginInterface *pluginInterface = qobject_cast<PluginInterface *>(pluginLoader.instance());
-        //传入kiran-screensaver提供相关接口进行插件初始化
+        // 传入kiran-screensaver提供相关接口进行插件初始化
         int iRes = pluginInterface->init(this);
         if (iRes != 0)
         {
@@ -324,15 +312,15 @@ bool ScreenManager::activate()
     // 创建解锁框,屏保框
     m_screensaver = new Screensaver(m_enableAnimation, nullptr);
 
-    //NOTE:空闲是否锁定屏幕控制权交由IdleWatcher决定，若IdleWatcher发出空闲信号，则锁定屏幕
-//    if (m_idleActivationLock) // 若开启空闲时锁定屏幕,创建解锁框
-//    {
-        if (!setLockActive(true))
-        {
-            delete m_screensaver;
-            return false;
-        }
-//    }
+    // NOTE:空闲是否锁定屏幕控制权交由IdleWatcher决定，若IdleWatcher发出空闲信号，则锁定屏幕
+    //    if (m_idleActivationLock) // 若开启空闲时锁定屏幕,创建解锁框
+    //    {
+    if (!setLockActive(true))
+    {
+        delete m_screensaver;
+        return false;
+    }
+    //    }
 
     // 创建背景窗口覆盖所有的屏幕
     createWindows();
@@ -346,9 +334,8 @@ bool ScreenManager::activate()
     connect(qApp, &QApplication::screenRemoved, this, &ScreenManager::handleScreenRemoved);
 
     // 屏保激活,应延迟复位
-    QTimer::singleShot(500, [this]() {
-        m_fade->reset();
-    });
+    QTimer::singleShot(500, [this]()
+                       { m_fade->reset(); });
 
     m_active = true;
     return true;
@@ -402,7 +389,7 @@ void ScreenManager::destroyWindows()
 
 bool ScreenManager::eventFilter(QObject *watched, QEvent *event)
 {
-    ///过滤全局事件，判断是否激活解锁框，或启用屏保盖住解锁框
+    /// 过滤全局事件，判断是否激活解锁框，或启用屏保盖住解锁框
     if (eventFilterActivate(watched, event))
     {
         return true;
@@ -417,10 +404,10 @@ bool ScreenManager::eventFilter(QObject *watched, QEvent *event)
     return QObject::eventFilter(watched, event);
 }
 
-//NOTE:在事件过滤之中删除某些控件并且该控件同时是事件的接收者需要过滤该事件，避免崩溃
+// NOTE:在事件过滤之中删除某些控件并且该控件同时是事件的接收者需要过滤该事件，避免崩溃
 bool ScreenManager::eventFilterActivate(QObject *watched, QEvent *event)
 {
-    if ( !m_active || (event->type()!=QEvent::MouseButtonPress && event->type()!=QEvent::KeyPress) )
+    if (!m_active || (event->type() != QEvent::MouseButtonPress && event->type() != QEvent::KeyPress))
         return false;
 
     // 若解锁框已被激活　按键和鼠标事件触发解锁框显示
@@ -555,18 +542,27 @@ void ScreenManager::setBackgroundWindowBlured(Window *window)
     }
 }
 
-void ScreenManager::handleAppearancePropertiesChanged(QString property,QVariantMap map,QStringList list)
+void ScreenManager::loadBackground()
 {
-    for( auto iter=map.begin();iter!=map.end();iter++ )
+    auto backgroundPath = m_appearanceInterface->lock_screen_background();
+    if (!m_background.load(backgroundPath))
+    {
+        KLOG_WARNING() << "can't load background," << backgroundPath;
+    }
+
+    for ( auto window:m_windowMap.values() )
+    {
+        window->setBackground(m_background);
+    }
+}
+
+void ScreenManager::handleAppearancePropertiesChanged(QString property, QVariantMap map, QStringList list)
+{
+    for (auto iter = map.begin(); iter != map.end(); iter++)
     {
         QString property = iter.key();
-        if( property != "lock_screen_background" )
+        if (property != "lock_screen_background")
             continue;
-        QString value = iter.value().toString();
-        if( !m_background.load(value) )
-        {
-            KLOG_WARNING() << "can't load background," << value;
-        }
-
+        loadBackground();
     }
 }

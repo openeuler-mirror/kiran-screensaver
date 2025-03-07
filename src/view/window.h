@@ -52,6 +52,7 @@ signals:
     void mouseEnter();
 
 private:
+    void adjustBackground(const QSize& specifySize);
     void handleScreenGeometryChanged(const QRect& geometry);
 
 protected:
