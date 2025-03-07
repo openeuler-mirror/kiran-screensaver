@@ -20,10 +20,10 @@
 #include <QProcess>
 #include <QResizeEvent>
 #include <QScreen>
+#include <QTimer>
 #include <QTimerEvent>
 #include <QWindow>
 #include <QtMath>
-#include <QTimer>
 
 #include <qt5-log-i.h>
 #include <QGraphicsBlurEffect>
@@ -63,10 +63,10 @@ Window::Window(bool enableAnimation, QScreen *screen)
     m_delayRaiseTimer = new QTimer(this);
     m_delayRaiseTimer->setInterval(100);
     m_delayRaiseTimer->setSingleShot(true);
-    connect(m_delayRaiseTimer,&QTimer::timeout,this,[this](){
+    connect(m_delayRaiseTimer, &QTimer::timeout, this, [this]()
+            {
         raise();
-        KLOG_INFO() << objectName() << "delay raised";
-    });
+        KLOG_INFO() << objectName() << "delay raised"; });
 }
 
 Window::~Window()
@@ -100,6 +100,41 @@ void Window::setScreen(QScreen *screen)
         handleScreenGeometryChanged(m_screen->geometry());
 }
 
+void Window::adjustBackground(const QSize &specifySize)
+{
+    if (m_background.isNull())
+    {
+        m_scaledBackground = QImage();
+        m_blurScaledBackground = QImage();
+        return;
+    }
+
+    auto backgroundSize = specifySize.isValid() ? specifySize : m_screen->size();
+
+    QSize minSize = backgroundSize;
+    QSize imageSize = m_background.size();
+
+    qreal factor = qMax(minSize.width() / (double)imageSize.width(),
+                        minSize.height() / (double)imageSize.height());
+
+    QSize newImageSize;
+    newImageSize.setWidth(qFloor(imageSize.width() * factor + 0.5));
+    newImageSize.setHeight(qFloor(imageSize.height() * factor + 0.5));
+
+    QImage backgroundScaled = m_background.scaled(newImageSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+
+    // 作为qt_blurImage的第二个参数，会将QImageData进行改动，此处应将已调整大小的图片数据拷贝一份作为参数
+    QImage tempImage = backgroundScaled.copy();
+    QImage blurImage(backgroundScaled.size(), QImage::Format_ARGB32_Premultiplied);
+    QPainter painter(&blurImage);
+
+    painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
+    qt_blurImage(&painter, tempImage, 35, true, false);
+
+    m_scaledBackground = backgroundScaled;
+    m_blurScaledBackground = blurImage;
+}
+
 void Window::handleScreenGeometryChanged(const QRect &geometry)
 {
     setGeometry(QRect(geometry.topLeft().x(), geometry.topLeft().y(), geometry.width(), geometry.height()));
@@ -108,35 +143,13 @@ void Window::handleScreenGeometryChanged(const QRect &geometry)
 void Window::setBackground(const QImage &background)
 {
     m_background = background;
+    adjustBackground(QSize());
 }
 
 void Window::resizeEvent(QResizeEvent *event)
 {
     // 由原始图片拉升已获得更好的显示效果
-    if (!m_background.isNull())
-    {
-        QSize minSize = event->size();
-        QSize imageSize = m_background.size();
-
-        qreal factor = qMax(minSize.width() / (double)imageSize.width(),
-                            minSize.height() / (double)imageSize.height());
-
-        QSize newImageSize;
-        newImageSize.setWidth(qFloor(imageSize.width() * factor + 0.5));
-        newImageSize.setHeight(qFloor(imageSize.height() * factor + 0.5));
-
-        QImage backgroundScaled = m_background.scaled(newImageSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-
-        // 作为qt_blurImage的第二个参数，会将QImageData进行改动，此处应将已调整大小的图片数据拷贝一份作为参数
-        QImage tempImage = backgroundScaled.copy();
-        QImage blurImage(backgroundScaled.size(), QImage::Format_ARGB32_Premultiplied);
-        QPainter painter(&blurImage);
-        painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
-        qt_blurImage(&painter, tempImage, 35, true, false);
-
-        m_scaledBackground = backgroundScaled;
-        m_blurScaledBackground = blurImage;
-    }
+    adjustBackground(event->size());
 
     QWidget::resizeEvent(event);
 }
