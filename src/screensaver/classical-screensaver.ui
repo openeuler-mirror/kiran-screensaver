@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Kiran::ScreenSaver::Screensaver</class>
- <widget class="QWidget" name="Kiran::ScreenSaver::Screensaver">
+ <class>Kiran::ScreenSaver::ClassicalScreensaver</class>
+ <widget class="Kiran::ScreenSaver::ScreensaverBase" name="Kiran::ScreenSaver::ClassicalScreensaver">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Screensaver</string>
+   <string>ClassicalScreensaver</string>
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout">
    <property name="spacing">
@@ -136,6 +136,14 @@
    </item>
   </layout>
  </widget>
+  <customwidgets>
+  <customwidget>
+   <class>Kiran::ScreenSaver::ScreensaverBase</class>
+   <extends>QWidget</extends>
+   <header location="global">screensaver-base.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>
