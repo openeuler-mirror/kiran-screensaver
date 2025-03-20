@@ -5,24 +5,47 @@
             <default>"@SCREENSAVER_PLUGIN_DIR@/libkiran-screensaver-dialog.so"</default>
         </key>
 
+        <!-- 
+        是否分割空闲触发锁屏和屏保,老版本默认屏保锁屏幕空闲一起触发，后续拆分
+        对于老版本请将该配置置为false
+         -->
+        <key name="split-screensaver-and-lock" type="b">
+            <default>@SPLIT_SCREENSAVER_AND_LOCK_DEF@</default>
+            <description>Whether to split screensaver and lock</description>
+        </key>
+
+        <!-- 
+        如果"split-screensaver-and-lock"=true,则该配置标识空闲只触发锁定，不应显示屏保
+        如果"split-screensaver-and-lock"=false,则该配置标识空闲触发屏保和锁定
+         -->
         <key name="idle-activation-lock" type="b">
             <default>true</default>
-            <description>空闲时是否锁定</description>
+            <description>Idle whether to lock the screen</description>
+        </key>
+
+        <key name="idle-activation-screensaver" type="b">
+            <default>true</default>
+            <description>Idle whether to show screensaver</description>
         </key>
 
         <key name="can-logout" type="b">
             <default>true</default>
-            <description>是否允许登出</description>
+            <description>Whether permission to log out is granted</description>
         </key>
 
         <key name="can-user-switch" type="b">
             <default>true</default>
-            <description>是否允许切换用户</description>
+            <description>Whether to allow switching users</description>
         </key>
 
         <key name="enable-animation" type="b">
             <default>true</default>
-            <description>是否启用动画</description>
+            <description>Whether to enable animation</description>
+        </key>
+
+        <key name="screensaver-theme" type="s">
+            <default>"classical"</default>
+            <description>Screensaver Theme(classical/xembed-$(xscreensaver-name))</description>
         </key>
     </schema>
 </schemalist>

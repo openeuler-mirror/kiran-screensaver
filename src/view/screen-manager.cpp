@@ -19,7 +19,7 @@
 #include "locker-interface.h"
 #include "plugin-interface.h"
 #include "prefs.h"
-#include "screensaver/screensaver.h"
+#include "screensaver/screensaver-factory.h"
 #include "visibility-monitor.h"
 #include "window.h"
 
@@ -43,12 +43,6 @@ ScreenManager::ScreenManager(Fade *fade,
       m_prefs(Prefs::getInstance()),
       m_fade(fade)
 {
-    if (m_prefs != nullptr)
-    {
-        m_enableAnimation = m_prefs->getEnableAnimation();
-        // m_idleActivationLock = m_prefs->getIdleActivationLock();
-    }
-
     m_appearanceInterface = new KiranAppearance(KIRAN_APPEARANCE_SERVICE, KIRAN_APPEARANCE_PATH,
                                                 QDBusConnection::sessionBus(), this);
     QDBusConnection::sessionBus().connect(m_appearanceInterface->service(),
@@ -134,7 +128,7 @@ bool ScreenManager::init()
     return true;
 }
 
-bool ScreenManager::setActive(bool active)
+bool ScreenManager::setActive(bool active)  // lock -> force && activate时不判断空闲锁屏(外部拉起锁屏)
 {
     bool res = false;
 
@@ -165,19 +159,19 @@ bool ScreenManager::setLockActive(bool lockActive)
         return true;
     }
 
-    KLOG_DEBUG() << (lockActive ? "activate" : "inactivate") << "locker...";
+    KLOG_INFO() << (lockActive ? "activate" : "inactivate") << "locker...";
 
     if (lockActive)
     {
         if (!m_lockerPluginInterface)
         {
-            KLOG_DEBUG() << "activate locker failed,can't load locker plugin!";
+            KLOG_WARNING() << "activate locker failed,can't load locker plugin!";
             return false;
         }
         else
         {
             m_lockerInterface = m_lockerPluginInterface->createLocker();
-            m_lockerInterface->setAnimationEnabled(m_enableAnimation);
+            m_lockerInterface->setAnimationEnabled(m_prefs->getEnableAnimation());
             m_lockerInterface->setAnimationDelay(UNLOCK_DIALOG_FADE_IN_ANIMATION_DELAY_MS, UNLOCK_DIALOG_FADE_OUT_ANIMATION_DELAY_MS);
             m_lockerInterface->setAnimationDuration(UNLOCK_DIALOG_FADE_IN_ANIMATION_DURATION_MS, UNLOCK_DIALOG_FADE_OUT_ANIMATION_DURATION_MS);
             m_lockerInterface->setEnableSwitch(m_prefs->getCanUserSwitch());
@@ -218,12 +212,14 @@ void ScreenManager::setLockVisible(bool lockVisible)
     if (m_lockerVisible)
     {
         m_lockerInterface->fadeIn();
-        m_screensaver->setMaskState(false);
+        if (m_screensaver)
+            m_screensaver->setMaskState(false);
     }
     else
     {
         m_lockerInterface->fadeOut();
-        m_screensaver->setMaskState(true);
+        if (m_screensaver)
+            m_screensaver->setMaskState(true);
     }
 
     setBackgroundWindowBlured(m_currentWindow);
@@ -232,6 +228,37 @@ void ScreenManager::setLockVisible(bool lockVisible)
 bool ScreenManager::getLockVisible()
 {
     return m_lockerVisible;
+}
+
+bool Kiran::ScreenSaver::ScreenManager::getScreenSaverActive() const
+{
+    return m_screenSaverActive;
+}
+
+void Kiran::ScreenSaver::ScreenManager::setScreenSaverActive(bool active)
+{
+    if (m_screenSaverActive == active)
+    {
+        QString debugTips = QString("trying to %1 screensaver,when screensaver is already %1").arg(active ? "activate" : "inactivate");
+        KLOG_DEBUG() << debugTips;
+        return;
+    }
+
+    KLOG_INFO() << (active ? "activate" : "inactivate") << "screensaver...";
+
+    if (active)
+    {
+        m_screensaver = ScreensaverFactory::createScreensaver(m_prefs->getScreensaverTheme(), m_prefs->getEnableAnimation());
+        moveContentToWindow(m_currentWindow);
+    }
+    else
+    {
+        delete m_screensaver;
+        m_screensaver = nullptr;
+    }
+
+    m_screenSaverActive = active;
+    return;
 }
 
 void ScreenManager::handleScreenAdded(QScreen *screen)
@@ -260,7 +287,7 @@ void ScreenManager::handleScreenRemoved(QScreen *screen)
 
 Window *ScreenManager::createWindowForScreen(QScreen *screen)
 {
-    auto window = new Window(m_enableAnimation, screen);
+    auto window = new Window(m_prefs->getEnableAnimation(), screen);
     connect(window, &Window::mouseEnter, this, &ScreenManager::handleWindowMouseEnter);
 
     KLOG_DEBUG() << "create window for screen:" << window->objectName();
@@ -309,26 +336,12 @@ bool ScreenManager::activate()
         return false;
     }
 
-    // 创建解锁框,屏保框
-    m_screensaver = new Screensaver(m_enableAnimation, nullptr);
-
-    // NOTE:空闲是否锁定屏幕控制权交由IdleWatcher决定，若IdleWatcher发出空闲信号，则锁定屏幕
-    //    if (m_idleActivationLock) // 若开启空闲时锁定屏幕,创建解锁框
-    //    {
-    if (!setLockActive(true))
-    {
-        delete m_screensaver;
-        return false;
-    }
-    //    }
-
     // 创建背景窗口覆盖所有的屏幕
     createWindows();
 
     auto findPrimaryWindowIter = m_windowMap.find(qApp->primaryScreen());
     Window *defaultWindow = findPrimaryWindowIter == m_windowMap.end() ? nullptr : findPrimaryWindowIter.value();
-
-    moveContentToWindow(defaultWindow);
+    m_currentWindow = defaultWindow;
 
     connect(qApp, &QApplication::screenAdded, this, &ScreenManager::handleScreenAdded);
     connect(qApp, &QApplication::screenRemoved, this, &ScreenManager::handleScreenRemoved);
@@ -362,10 +375,8 @@ bool ScreenManager::deactivate()
     disconnect(qApp, &QApplication::screenAdded, this, &ScreenManager::handleScreenAdded);
     disconnect(qApp, &QApplication::screenRemoved, this, &ScreenManager::handleScreenRemoved);
 
-    delete m_screensaver;
-    m_screensaver = nullptr;
-
     setLockActive(false);
+    setScreenSaverActive(false);
 
     Grab::getInstance()->releaseGrab();
 
@@ -435,7 +446,12 @@ bool ScreenManager::eventFilterActivate(QObject *watched, QEvent *event)
         }
         else
         {
-            if (getLockActive() && getLockVisible() && keyEvent->key() == Qt::Key_Escape)
+            // 屏保未激活时，不处理键盘切换屏保/锁屏
+            if (!getScreenSaverActive())
+            {
+                return false;
+            }
+            else if (getLockActive() && getLockVisible() && keyEvent->key() == Qt::Key_Escape)
             {
                 setLockVisible(false);
                 return true;
@@ -550,7 +566,7 @@ void ScreenManager::loadBackground()
         KLOG_WARNING() << "can't load background," << backgroundPath;
     }
 
-    for ( auto window:m_windowMap.values() )
+    for (auto window : m_windowMap.values())
     {
         window->setBackground(m_background);
     }

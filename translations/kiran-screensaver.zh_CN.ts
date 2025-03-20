@@ -4,56 +4,54 @@
 <context>
     <name>KSScreensaver</name>
     <message>
-        <location filename="../build/kiran-screensaver_autogen/include/ui_ks-screensaver.h" line="108"/>
-        <source>KSScreensaver</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../build/kiran-screensaver_autogen/include/ui_ks-screensaver.h" line="109"/>
-        <source>14:45</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../build/kiran-screensaver_autogen/include/ui_ks-screensaver.h" line="110"/>
-        <source>8月27日 星期五</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Click to unlock</source>
         <translation type="vanished">点击解锁</translation>
     </message>
 </context>
 <context>
-    <name>Kiran::ScreenSave::Screensaver</name>
+    <name>Kiran::ScreenSaver::ClassicalScreensaver</name>
     <message>
-        <location filename="../src/screensaver/screensaver.ui" line="14"/>
-        <location filename="../cmake-build-debug/kiran-screensaver_autogen/include/ui_screensaver.h" line="109"/>
-        <source>Screensaver</source>
+        <location filename="../src/screensaver/classical-screensaver.ui" line="14"/>
+        <location filename="../build/kiran-screensaver_autogen/include/ui_classical-screensaver.h" line="112"/>
+        <source>ClassicalScreensaver</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/screensaver/screensaver.ui" line="56"/>
-        <location filename="../cmake-build-debug/kiran-screensaver_autogen/include/ui_screensaver.h" line="110"/>
+        <location filename="../src/screensaver/classical-screensaver.ui" line="66"/>
+        <location filename="../build/kiran-screensaver_autogen/include/ui_classical-screensaver.h" line="113"/>
         <source>14:45</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/screensaver/screensaver.ui" line="72"/>
-        <location filename="../cmake-build-debug/kiran-screensaver_autogen/include/ui_screensaver.h" line="111"/>
+        <location filename="../src/screensaver/classical-screensaver.ui" line="83"/>
+        <location filename="../build/kiran-screensaver_autogen/include/ui_classical-screensaver.h" line="114"/>
         <source>8月27日 星期五</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/screensaver/classical-screensaver.cpp" line="42"/>
+        <source>Click to unlock</source>
+        <translation type="unfinished">点击解锁</translation>
+    </message>
+    <message>
+        <location filename="../src/screensaver/classical-screensaver.cpp" line="55"/>
+        <source>MM-dd dddd</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
     <name>Kiran::ScreenSaver::Screensaver</name>
     <message>
-        <location filename="../src/screensaver/screensaver.cpp" line="94"/>
         <source>Click to unlock</source>
-        <translation type="unfinished">点击解锁</translation>
+        <translation type="obsolete">点击解锁</translation>
     </message>
+</context>
+<context>
+    <name>Kiran::ScreenSaver::XEmbedScreensaver</name>
     <message>
-        <location filename="../src/screensaver/screensaver.cpp" line="176"/>
-        <source>MM-dd dddd</source>
+        <location filename="../src/screensaver/xembed-screensaver.ui" line="14"/>
+        <location filename="../build/kiran-screensaver_autogen/include/ui_xembed-screensaver.h" line="45"/>
+        <source>Widget</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

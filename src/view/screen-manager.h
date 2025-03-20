@@ -30,7 +30,7 @@ namespace ScreenSaver
 {
 class Window;
 class Fade;
-class Screensaver;
+class ScreensaverBase;
 class Prefs;
 class PluginInterface;
 class LockerInterface;
@@ -40,13 +40,13 @@ class ScreenManager : public QObject, public Interface
     Q_OBJECT
 public:
     ScreenManager(Fade* fade,
-                    QObject* parent = nullptr);
+                  QObject* parent = nullptr);
     ~ScreenManager();
 
-    //　初始化加载相关插件
+    // 　初始化加载相关插件
     bool init();
 
-    //　提供接口给解锁框插件调用,传达解锁框认证成功的消息
+    // 　提供接口给解锁框插件调用,传达解锁框认证成功的消息
     void authenticationPassed() override;
 
     // 全局事件过滤器
@@ -66,6 +66,11 @@ public:
     // 锁定框是否可见
     void setLockVisible(bool lockVisible);
     bool getLockVisible();
+
+    // 屏保层激活状态
+    bool getScreenSaverActive() const;
+    // 设置屏保层激活状态
+    void setScreenSaverActive(bool active);
 
 signals:
     // 向外发送deactivate请求
@@ -98,25 +103,23 @@ private slots:
     void handleScreenAdded(QScreen* screen);
     void handleScreenRemoved(QScreen* screen);
     void handleWindowMouseEnter();
-    void handleAppearancePropertiesChanged(QString property,QVariantMap map,QStringList list);
+    void handleAppearancePropertiesChanged(QString property, QVariantMap map, QStringList list);
 
 private:
     // kiran-screensaver配置项
     Prefs* m_prefs = nullptr;
     KiranAppearance* m_appearanceInterface = nullptr;
+
     // 屏幕淡出接口实现
     Fade* m_fade = nullptr;
-    // 是否启用动画
-    bool m_enableAnimation = false;
-    // 空闲时激活锁定
-    bool m_idleActivationLock = false;
-
-    // 屏保和容器窗口是否激活
+    // 是否激活(屏幕上是否存在窗口)
     bool m_active = false;
     // 解锁框是否激活
     bool m_lockActive = false;
     // 解锁框是否可见
     bool m_lockerVisible = false;
+    // 屏保层是否激活
+    bool m_screenSaverActive = false;
 
     // 窗口背景缓存
     QImage m_background;
@@ -125,7 +128,7 @@ private:
     // 当前显示内容的背景窗口
     Window* m_currentWindow = nullptr;
     // 屏保界面
-    Screensaver* m_screensaver = nullptr;
+    ScreensaverBase* m_screensaver = nullptr;
     // 解锁框界面
     PluginInterface* m_lockerPluginInterface = nullptr;
     LockerInterface* m_lockerInterface = nullptr;
@@ -135,4 +138,4 @@ private:
 }  // namespace ScreenSaver
 }  // namespace Kiran
 
-#endif  //KIRAN_SCREENSAVER_SRC_SCREEN_MANAGER_KS_SCREEN_MANAGER_H_
+#endif  // KIRAN_SCREENSAVER_SRC_SCREEN_MANAGER_KS_SCREEN_MANAGER_H_

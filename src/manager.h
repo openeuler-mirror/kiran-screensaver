@@ -45,7 +45,8 @@ private slots:
     void onWatcherIdleNoticeChanged(bool isEffect, bool& handled);
     void onListenerActiveChanged(bool active, bool& handled);
     void handleListenerLock();
-
+    void processIdleTriggerChanged();
+    
 private:
     Prefs* m_prefs = nullptr;
     Fade* m_fade = nullptr;

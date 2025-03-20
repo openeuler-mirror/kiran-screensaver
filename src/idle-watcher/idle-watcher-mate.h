@@ -66,7 +66,7 @@ private:
     //延迟通知空闲超时时间
     uint64_t m_delayIdleTimeout = 2000;
 
-    //空闲检测是否开启
+    //空闲检测是否开启 (锁定时会临时关闭)
     bool m_idleDetectionActive = false;
     //空闲状态是否开启
     bool m_idle = false;

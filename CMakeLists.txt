@@ -2,6 +2,15 @@ cmake_minimum_required(VERSION 3.5)
 
 project(kiran-screensaver)
 
+# 屏幕保护以及解锁窗口分开触发
+# 适用于>=KiranUI2.6
+OPTION( SPLIT_SCREENSAVER_AND_LOCK "Split screensavers and lock windows" OFF)
+if ( SPLIT_SCREENSAVER_AND_LOCK )
+    set(SPLIT_SCREENSAVER_AND_LOCK_DEF true)
+else()
+    set(SPLIT_SCREENSAVER_AND_LOCK_DEF false)
+endif()
+
 set(CMAKE_CXX_STANDARD 11)
 
 find_package(PkgConfig REQUIRED)
@@ -77,9 +86,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
         src/screensaver
         src/locker
         src/widgets
-
         include
-
         ${KIRAN_LOG_QT5_INCLUDE_DIRS}
         ${KIRANWIDGETS_QT5_INCLUDE_DIRS}
         ${GSETTINGS_QT_INCLUDE_DIRS}
@@ -108,7 +115,7 @@ set(TRANSLATIONS_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/ki
 add_subdirectory(tools)
 
 configure_file(data/config.h.in ${CMAKE_BINARY_DIR}/config.h @ONLY)
-configure_file(data/com.kylinsec.Kiran.ScreenSaver.service.in ${CMAKE_BINARY_DIR}/com.kylinsec.Kiran.ScreenSaver.service)
+configure_file(data/com.kylinsec.Kiran.ScreenSaver.service.in ${CMAKE_BINARY_DIR}/com.kylinsec.Kiran.ScreenSaver.service @ONLY)
 
 install(TARGETS ${PROJECT_NAME} DESTINATION ${SCREENSAVER_BIN_DIR})
 install(FILES ${QM_FILES} DESTINATION ${TRANSLATIONS_INSTALL_DIR})

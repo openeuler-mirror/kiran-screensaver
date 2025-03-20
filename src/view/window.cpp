@@ -192,7 +192,7 @@ qreal Window::blurOpacity()
 
 void Window::setBlurOpacity(qreal blurOpacity)
 {
-    KLOG_DEBUG() << "set blur opacity:" << blurOpacity;
+    // KLOG_DEBUG() << "set blur opacity:" << blurOpacity;
     m_blurOpacity = blurOpacity;
     update();
 }
