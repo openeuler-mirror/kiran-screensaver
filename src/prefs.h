@@ -18,8 +18,7 @@
 #include <QObject>
 #include <QString>
 #include <QtGlobal>
-
-//NOTE:暂时解锁框和屏保绑定，不开启空闲时是否锁定屏幕配置项
+#include "config.h"
 
 /**
  * @brief: 提供kiran-screensaver相关配置项的获取与监控
@@ -43,14 +42,17 @@ public:
 
 public:
     bool getIdleActivationLock() const;
+    bool getIdleActivationScreensaver() const;
+
     bool getCanLogout() const;
     bool getCanUserSwitch() const;
     bool getEnableAnimation() const;
-
+    QString getScreensaverTheme() const;
     QString getLockerPluginPath() const;
 
 signals:
-    void idleActivationLockChanged(bool idleActivationLock);
+    void idleActivationLockChanged();
+    void idleActivationScrensaverChanged();
 
 private:
     void setIdleActivationLock(bool idleActivationLock);
@@ -64,12 +66,17 @@ private slots:
 private:
     bool isInited = false;
     QGSettings* m_screensaverSettings = nullptr;
-    bool m_idleActivationLock = true;  //空闲时是否锁定
-    bool m_canLogout = false;          //是否允许注销
-    bool m_canUserSwitch = false;      //是否允许用户.切换
-    bool m_enableAnimation = false;    //是否启用动画
-    QString m_lockerPluginPath;        //解锁框插件位置
+
+    bool m_splitScreensaverAndLock = false;  // 是否拆分空闲锁定以及屏保配置
+    bool m_idleActivationLock = true;        // 空闲时是否锁定/屏保
+    bool m_idleActivationScreensaver = true; // 空闲时是否锁定
+
+    bool m_canLogout = false;        // 是否允许注销
+    bool m_canUserSwitch = false;    // 是否允许用户.切换
+    bool m_enableAnimation = false;  // 是否启用动画
+    QString m_lockerPluginPath;      // 解锁框插件位置
+    QString m_screensaverTheme;      // 屏保主题
 };
 }  // namespace ScreenSaver
 }  // namespace Kiran
-#endif  //KIRAN_SCREENSAVER_SRC_PREFS_H_
+#endif  // KIRAN_SCREENSAVER_SRC_PREFS_H_
