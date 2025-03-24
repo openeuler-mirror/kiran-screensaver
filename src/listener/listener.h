@@ -57,7 +57,8 @@ public:
     /// \param idle 会话是否空闲
     /// \return 是否成功(true表示设置会话空闲成功,false设置失败或已是该状态)
     bool setSessionIdle(bool idle);
-
+    bool getSessionIdle() const { return m_sessionIdle; };
+    
     /// 设置屏保状态
     /// \param active 屏保激活状态
     /// \return 是否成功
@@ -128,7 +129,7 @@ private slots:
 
 private:
     QString callerInfo();
-    
+
 private:
     bool m_isActive = false;
     bool m_sessionIdle = false;
@@ -140,4 +141,4 @@ private:
 }  // namespace ScreenSaver
 }  // namespace Kiran
 
-#endif  //KIRAN_SCREENSAVER_SRC_KS_LISTENER_H_
+#endif  // KIRAN_SCREENSAVER_SRC_KS_LISTENER_H_

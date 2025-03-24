@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 ~ 2021 KylinSec Co., Ltd.
+ * Copyright (c) 2020 ~ 2025 KylinSec Co., Ltd.
  * kiran-screensaver is licensed under Mulan PSL v2.
  * You can use this software according to the terms and conditions of the Mulan PSL v2.
  * You may obtain a copy of Mulan PSL v2 at:
@@ -9,77 +9,57 @@
  * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
  * See the Mulan PSL v2 for more details.
  *
- * Author:     liuxinhao <liuxinhao@kylinos.com.cn>
+ * Author:     liuxinhao <liuxinhao@kylinsec.com.cn>
  */
-
-#ifndef KIRAN_SCREENSAVER_SRC_SCREENSAVER_SCREENSAVER_H_
-#define KIRAN_SCREENSAVER_SRC_SCREENSAVER_SCREENSAVER_H_
-
+#pragma once
 #include <QWidget>
 
-QT_BEGIN_NAMESPACE
-
-QT_END_NAMESPACE
-
-class QGraphicsOpacityEffect;
 class QStateMachine;
 class QState;
-
+class QResizeEvent;
+class QPaintEvent;
 namespace Kiran
 {
 namespace ScreenSaver
 {
-
-
-namespace Ui
-{
-class Screensaver;
-}  // namespace Ui
-
 class GraphicsGlowEffect;
-class FloatLabel;
-class Screensaver : public QWidget
+class ScreensaverBase : public QWidget
 {
     Q_OBJECT
 public:
-    explicit Screensaver(bool enableAnimation,
-                         QWidget* parent = nullptr);
-    ~Screensaver() override;
+    explicit ScreensaverBase(bool animated, QWidget* parent = nullptr);
+    virtual ~ScreensaverBase();
 
     // 遮盖状态,是否覆盖父窗口内容
-    bool maskState();
+    bool isMasked();
     void setMaskState(bool maskState);
 
-private:
-    void init();
-    void initGraphicsEffect();
-    void setupStateMachine();
-    void updateStateProperty();
+    static bool isSupported(const QString& name) { return false; };
 
 signals:
+    void updateTime();
     void masking();
     void unmasking();
 
 protected:
-    void resizeEvent(QResizeEvent* event) override;
+    void updateStateProperty();
+    virtual void resizeEvent(QResizeEvent* event) override;
 
-private slots:
+private:
+    void init();
+    void initStateMachine();
+
+protected slots:
+    // 触发更新时钟, 根据当前刷新时间，计算下次刷新时间(外部触发)
     void startUpdateTimeDateTimer();
 
 private:
-    Ui::Screensaver* ui;
-    FloatLabel* m_floatingLabel = nullptr;
-
     bool m_masked = true;
     bool m_enableAnimation = false;
-
     QStateMachine* m_stateMachine = nullptr;
     QState* m_maskState = nullptr;
-    QState* m_unMaskState = nullptr;
-
+    QState* m_unmaskState = nullptr;
     GraphicsGlowEffect* m_opacityEffect = nullptr;
 };
-
 }  // namespace ScreenSaver
 }  // namespace Kiran
-#endif  //KIRAN_SCREENSAVER_SRC_SCREENSAVER_SCREENSAVER_H_
