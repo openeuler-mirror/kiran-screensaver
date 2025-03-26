@@ -19,13 +19,15 @@
 #include <QDBusConnection>
 #include <QDBusConnectionInterface>
 #include <QDateTime>
-#include <QDebug>
+#include <QLoggingCategory>
 #include <QString>
+#include <QtGlobal>
+#include <QRandomGenerator>
 
-#define NOT_SUPPORTED_METHOD                                        \
-    {                                                               \
-        KLOG_DEBUG("isn't supported!,ignore method call");          \
-        sendErrorReply(QDBusError::NotSupported, "not supported!"); \
+#define NOT_SUPPORTED_METHOD                                            \
+    {                                                                   \
+        KLOG_DEBUG(qLcListener, "isn't supported!,ignore method call"); \
+        sendErrorReply(QDBusError::NotSupported, "not supported!");     \
     }
 
 #define SESSION_NAME "org.gnome.SessionManager"
@@ -43,6 +45,8 @@ typedef enum
     GSM_INHIBITOR_FLAG_SUSPEND = 1 << 2,
     GSM_INHIBITOR_FLAG_IDLE = 1 << 3
 } GsmInhibitorFlag;
+
+Q_LOGGING_CATEGORY(qLcListener, "kiran.ss.listener", QtMsgType::QtDebugMsg)
 
 namespace Kiran
 {
@@ -112,7 +116,7 @@ bool Listener::setSessionIdle(bool idle)
     ///相同状态忽略
     if (m_sessionIdle == idle)
     {
-        KLOG_DEBUG("trying to set idle state when already %s", (idle ? "idle" : "not idle"));
+        KLOG_DEBUG(qLcListener, "idle state already %s, ignore", (idle ? "idle" : "not idle"));
         return false;
     }
 
@@ -202,6 +206,11 @@ uint Listener::Inhibit(const QString &application_name, const QString &reason)
     QString senderName = conn.interface()->serviceOwner(msg.service()).value();
     uint senderUid = conn.interface()->serviceUid(msg.service()).value();
     uint senderPid = conn.interface()->servicePid(msg.service()).value();
+    KLOG_INFO(qLcListener) << "add inhibit app:" << application_name
+                           << "reason:" << reason
+                           << "sender name:" << senderName
+                           << "sender uid:" << senderUid
+                           << "sender pid:" << senderPid;
 
     InhibitedEntry entry;
     entry.connection = senderName;
@@ -236,9 +245,16 @@ void Listener::SimulateUserActivity()
 
 quint64 Listener::generateCookie()
 {
+    quint64 cookie = 0;
+
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 10, 0))
+    cookie = QRandomGenerator::global()->bounded(1, INT_MAX);
+#else
     time_t randomSeed = time(nullptr);
     qsrand(randomSeed);
-    quint64 cookie = (quint64)qrand();
+    cookie = (quint64)qrand();
+#endif
+
     return cookie;
 }
 
@@ -311,10 +327,9 @@ void Listener::handleDBusNameOwnerChanged(const QString &name, const QString &ol
 
 void Listener::addInhibitEntry(InhibitedEntry &entry)
 {
+    addSessionInhibit(entry);
     auto iter = m_inhibitedEntries.insert(entry.cookie, entry);
-    addSessionInhibit(iter.value());
-
-    KLOG_DEBUG() << "add inhibit entry ->" << iter.value();
+    KLOG_INFO(qLcListener) << "inhibit added: " << iter.value();
 }
 
 void Listener::removeInhibitEntry(quint64 cookie)
