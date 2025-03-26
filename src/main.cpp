@@ -38,6 +38,7 @@ int main(int argc, char *argv[])
     KiranApplication app(argc, argv);
 
     int xsetProcess = QProcess::execute("xset", QStringList() << "s" << "0" << "0");
+    KLOG_DEBUG() << "xset execute result:" << xsetProcess;
 
     auto translator = new QTranslator;
     if (translator->load(QLocale(),

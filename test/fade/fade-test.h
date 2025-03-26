@@ -17,7 +17,7 @@
 
 #include <QObject>
 
-class KSFade;
+class Fade;
 class FadeTest : public QObject
 {
     Q_OBJECT
@@ -28,7 +28,7 @@ public:
     bool start();
 
 private:
-    KSFade* m_fade = nullptr;
+    Fade* m_fade = nullptr;
 };
 
 #endif  //KIRAN_SCREENSAVER_TEST_FADE_FADE_TEST_H_
