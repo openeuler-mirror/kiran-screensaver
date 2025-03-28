@@ -16,19 +16,19 @@
 #include "logind-session-monitor.h"
 
 #include <qt5-log-i.h>
-#include <QLoggingCategory>
 #include <QDBusConnection>
 #include <QDBusConnectionInterface>
 #include <QDateTime>
+#include <QLoggingCategory>
 #include <QString>
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 10, 0))
 #include <QRandomGenerator>
 #endif
 
-#define NOT_SUPPORTED_METHOD                                        \
-    {                                                               \
-        KLOG_DEBUG(qLcListener,"isn't supported!,ignore method call");          \
-        sendErrorReply(QDBusError::NotSupported, "not supported!"); \
+#define NOT_SUPPORTED_METHOD                                            \
+    {                                                                   \
+        KLOG_DEBUG(qLcListener, "isn't supported!,ignore method call"); \
+        sendErrorReply(QDBusError::NotSupported, "not supported!");     \
     }
 
 #define TRACE_CALLER(tip)                                          \
@@ -53,7 +53,7 @@ typedef enum
     GSM_INHIBITOR_FLAG_IDLE = 1 << 3
 } GsmInhibitorFlag;
 
-Q_LOGGING_CATEGORY(qLcListener,"kiran.ss.listener",QtMsgType::QtDebugMsg)
+Q_LOGGING_CATEGORY(qLcListener, "kiran.ss.listener", QtMsgType::QtDebugMsg)
 
 namespace Kiran
 {
@@ -123,7 +123,7 @@ bool Listener::setSessionIdle(bool idle)
     /// 相同状态忽略
     if (m_sessionIdle == idle)
     {
-        KLOG_DEBUG(qLcListener,"idle state already %s, ignore", (idle ? "idle" : "not idle"));
+        KLOG_DEBUG(qLcListener, "idle state already %s, ignore", (idle ? "idle" : "not idle"));
         return false;
     }
 
@@ -222,6 +222,11 @@ uint Listener::Inhibit(const QString &application_name, const QString &reason)
     QString senderName = conn.interface()->serviceOwner(msg.service()).value();
     uint senderUid = conn.interface()->serviceUid(msg.service()).value();
     uint senderPid = conn.interface()->servicePid(msg.service()).value();
+    KLOG_INFO(qLcListener) << "add inhibit app:" << application_name
+                           << "reason:" << reason
+                           << "sender name:" << senderName
+                           << "sender uid:" << senderUid
+                           << "sender pid:" << senderPid;
 
     InhibitedEntry entry;
     entry.connection = senderName;
@@ -260,9 +265,9 @@ void Listener::SimulateUserActivity()
 quint64 Listener::generateCookie()
 {
     quint64 cookie = 0;
-    
+
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 10, 0))
-        cookie = QRandomGenerator::global()->bounded(1, INT_MAX);
+    cookie = QRandomGenerator::global()->bounded(1, INT_MAX);
 #else
     time_t randomSeed = time(nullptr);
     qsrand(randomSeed);
@@ -370,8 +375,8 @@ QString Kiran::ScreenSaver::Listener::callerInfo()
 
 void Listener::addInhibitEntry(InhibitedEntry &entry)
 {
+    addSessionInhibit(entry);
     auto iter = m_inhibitedEntries.insert(entry.cookie, entry);
-    addSessionInhibit(iter.value());
     KLOG_INFO(qLcListener) << "inhibit added: " << iter.value();
 }
 

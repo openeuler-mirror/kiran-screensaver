@@ -31,8 +31,10 @@ class FadeXrandr : public FadeInterface
 {
 public:
     FadeXrandr();
+    FadeXrandr(FadeXrandr& other) = delete;
+    FadeXrandr& operator=(FadeXrandr& other) = delete;
     ~FadeXrandr();
-
+    
 public:
     static bool checkForSupport();
     bool setup() override;

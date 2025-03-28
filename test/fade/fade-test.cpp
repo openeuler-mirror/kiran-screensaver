@@ -20,8 +20,8 @@
 
 FadeTest::FadeTest(QObject *parent) : QObject(parent)
 {
-    m_fade = new KSFade(this);
-    connect(m_fade,&KSFade::faded,this,[this](){
+    m_fade = new Fade(this);
+    connect(m_fade,&Fade::faded,this,[this](){
         KLOG_INFO() << "fade finish";
         m_fade->reset();
         qApp->quit();
