@@ -50,10 +50,12 @@ public:
     QString getScreensaverTheme() const;
     QString getLockerPluginPath() const;
 
+    bool getEnableDisplayIdleDimmed() const;
 signals:
     void idleActivationLockChanged();
     void idleActivationScrensaverChanged();
-
+    void enableIdleDimmedChanged();
+    
 private:
     void setIdleActivationLock(bool idleActivationLock);
     void setCanLogout(bool canLogout);
@@ -62,6 +64,7 @@ private:
 
 private slots:
     void handleGSettingsChanged(const QString& key);
+    void handlePowerGSettingsChanged(const QString& key);
 
 private:
     bool isInited = false;
@@ -76,6 +79,9 @@ private:
     bool m_enableAnimation = false;  // 是否启用动画
     QString m_lockerPluginPath;      // 解锁框插件位置
     QString m_screensaverTheme;      // 屏保主题
+
+    QGSettings* m_powerSettings = nullptr;
+    bool m_enableDisplayIdleDimmed = false;
 };
 }  // namespace ScreenSaver
 }  // namespace Kiran

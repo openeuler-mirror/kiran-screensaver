@@ -175,8 +175,14 @@ void Manager::onWatcherIdleNoticeChanged(bool isEffect, bool& handled)
             KLOG_WARNING() << "grab pointer and keyboard offscreen failed!";
             return;
         }
-        // 屏幕开始淡出
-        m_fade->startAsync();
+
+        // 电源插件后端开启了"空闲时变暗显示器"功能时，不启动空闲预告淡出动画, 避免和该功能冲突
+        if (!m_prefs->getEnableDisplayIdleDimmed())
+        {
+            // 屏幕开始淡出
+            m_fade->startAsync();
+        }
+
         handled = true;
     }
     else  /// 取消空闲预告
