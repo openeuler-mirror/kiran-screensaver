@@ -163,6 +163,12 @@ void Fade::reset()
         stop();
     }
 
+    // 未开始淡出，直接返回
+    if( m_currentAlpha == 1.0 )
+    {
+        return;
+    }
+
     // 复位gamma
     m_currentAlpha = 1.0;
     m_fadeInterface->setAlphaGamma(m_currentAlpha);

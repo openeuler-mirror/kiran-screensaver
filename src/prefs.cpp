@@ -41,6 +41,9 @@
 #define KEY_SCREENSAVER_LOCKER "screensaverLocker"
 #define KEY_SCREENSAVER_THEME "screensaverTheme"
 
+#define SCHEMA_KIRAN_POWER "com.kylinsec.kiran.power"
+#define KEY_ENABLE_DISPLAY_IDLE_DIMMED "enableDisplayIdleDimmed"
+
 using namespace Kiran::ScreenSaver;
 
 Prefs::Prefs(QObject* parent)
@@ -93,6 +96,22 @@ bool Prefs::init()
     m_screensaverTheme = m_screensaverSettings->get(KEY_SCREENSAVER_THEME).toString();
     KLOG_INFO() << "\t" KEY_SCREENSAVER_THEME << m_screensaverTheme;
 
+    if (QGSettings::isSchemaInstalled(SCHEMA_KIRAN_POWER))
+    {
+        m_powerSettings = new QGSettings(SCHEMA_KIRAN_POWER, "", this);
+        if (!m_powerSettings->keys().contains(KEY_ENABLE_DISPLAY_IDLE_DIMMED))
+        {
+            m_powerSettings->deleteLater();
+        }
+        else
+        {
+            m_enableDisplayIdleDimmed = m_powerSettings->get(KEY_ENABLE_DISPLAY_IDLE_DIMMED).toBool();
+            connect(m_powerSettings, &QGSettings::changed, this, &Prefs::handlePowerGSettingsChanged);
+            KLOG_INFO() << "load kiran-power prefs: enable-display-idle-dimmed" << m_enableDisplayIdleDimmed;
+        }
+    }
+
+
     isInited = true;
     return true;
 }
@@ -104,7 +123,7 @@ bool Prefs::getIdleActivationLock() const
 
 bool Kiran::ScreenSaver::Prefs::getIdleActivationScreensaver() const
 {
-    if( m_splitScreensaverAndLock )
+    if (m_splitScreensaverAndLock)
     {
         return m_idleActivationScreensaver;
     }
@@ -169,7 +188,7 @@ void Prefs::handleGSettingsChanged(const QString& key)
     {
         emit idleActivationScrensaverChanged();
     }
-    else if(key == KEY_SPLIT_SCREENSAVER_AND_LOCK)
+    else if (key == KEY_SPLIT_SCREENSAVER_AND_LOCK)
     {
         emit idleActivationScrensaverChanged();
     }
@@ -196,6 +215,16 @@ void Prefs::setEnableAnimation(bool enableAnimation)
     m_screensaverSettings->set(KEY_ENABLE_ANIMATION, m_enableAnimation);
 }
 
+void Kiran::ScreenSaver::Prefs::handlePowerGSettingsChanged(const QString& key)
+{
+    if (key == KEY_ENABLE_DISPLAY_IDLE_DIMMED)
+    {
+        m_enableDisplayIdleDimmed = m_powerSettings->get(key).toBool();
+        KLOG_INFO() << "settings changed:" << key << m_enableDisplayIdleDimmed;
+        emit enableIdleDimmedChanged();
+    }
+}
+
 Prefs* Prefs::getInstance()
 {
     static QMutex mutex;
@@ -216,4 +245,9 @@ Prefs* Prefs::getInstance()
 QString Prefs::getLockerPluginPath() const
 {
     return m_lockerPluginPath;
+}
+
+bool Kiran::ScreenSaver::Prefs::getEnableDisplayIdleDimmed() const
+{
+    return m_enableDisplayIdleDimmed;
 }
