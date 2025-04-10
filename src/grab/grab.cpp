@@ -81,7 +81,6 @@ void Grab::releaseGrab()
 
 bool Grab::grabWindow(WId wid, bool grabPointer)
 {
-    bool bRes = false;
     int retries = 12;
 
     releaseGrab();

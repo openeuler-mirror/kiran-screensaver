@@ -37,6 +37,8 @@ public:
 
 public:
     bool init();
+    
+private:
     bool initDBusListener();
     bool initIdleWatcher();
 
