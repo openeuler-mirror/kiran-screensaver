@@ -27,11 +27,14 @@ int main(int argc, char *argv[])
                   "kiran-screensaver");
 
     // NOTE:
-    // #15523
     // xsmp QueryEndSession 会话询问退出阶段
-    // QxcbSessionManager -> QGuiApplicationPrivate::commitData将会尝试关闭所有窗口，导致进程退出
-    // 不需要关闭窗口，所以禁用SessionManager
-    QCoreApplication::setAttribute(Qt::AA_DisableSessionManager);
+    // QxcbSessionManager -> QGuiApplicationPrivate::commitData将会尝试关闭所有窗口，导致进程退出(#15523)
+    // 1. 由于依赖会话管理AutoRestart功能，需向会话管理注册，不能禁用SessionManager。
+    // 2. 不能重写QWidget::closeEvent ignore事件，会影响整个会话流程。
+    
+    // 加入标志，影响流程 QGuiApplicationPrivate::commitData。不关闭所有窗口，也不影响会话管理AutoRestart功能
+    QGuiApplication::setFallbackSessionManagementEnabled(false);
+
     // 窗口全部关闭时也不退出
     QGuiApplication::setQuitOnLastWindowClosed(false);
 
