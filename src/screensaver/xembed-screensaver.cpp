@@ -12,6 +12,7 @@
  * Author:     liuxinhao <liuxinhao@kylinsec.com.cn>
  */
 #include "xembed-screensaver.h"
+#include <QCursor>
 #include <QDateTime>
 #include <QFileInfo>
 #include <QProcess>
@@ -83,6 +84,7 @@ void XEmbedScreensaver::init()
     m_foreignWindow = new QWindow();
     m_foreignWindow->setFlags(Qt::ForeignWindow);
     m_foreignWindow->create();
+    m_foreignWindow->setCursor(Qt::BlankCursor);
 
     m_embedContainer = QWidget::createWindowContainer(m_foreignWindow, this);
     ui->layout_content->addWidget(m_embedContainer);
