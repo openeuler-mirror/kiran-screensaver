@@ -147,7 +147,18 @@ bool FadeXrandr::setAlphaGamma(double alpha)
             g[i] = iter.value()->g[i]*alpha;
             b[i] = iter.value()->b[i]*alpha;
         }
-        xcb_randr_set_crtc_gamma(Xcb::default_connection(),iter.key(),iter.value()->size,r.data(),g.data(),b.data());
+        auto gamma_set_cookie = xcb_randr_set_crtc_gamma_checked(Xcb::default_connection(), iter.key(),
+                                                                 iter.value()->size,
+                                                                 r.data(),
+                                                                 g.data(),
+                                                                 b.data());
+        // 同步请求处理，避免SetCrtcGamma请求堆积在缓冲区中
+        auto xcb_ge_error = xcb_request_check(Xcb::default_connection(), gamma_set_cookie);
+        if (xcb_ge_error)
+        {
+            KLOG_ERROR() << "set crtc gamma failed for crtc" << alpha << "ErrorCode:" << xcb_ge_error->error_code;
+            free(xcb_ge_error);
+        }
     }
 
     return true;
