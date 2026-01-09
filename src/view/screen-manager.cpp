@@ -43,22 +43,8 @@ ScreenManager::ScreenManager(Fade *fade,
       m_prefs(Prefs::getInstance()),
       m_fade(fade)
 {
-    m_appearanceInterface = new KiranAppearance(KIRAN_APPEARANCE_SERVICE, KIRAN_APPEARANCE_PATH,
-                                                QDBusConnection::sessionBus(), this);
-    QDBusConnection::sessionBus().connect(m_appearanceInterface->service(),
-                                          m_appearanceInterface->path(),
-                                          "org.freedesktop.DBus.Properties", "PropertiesChanged",
-                                          this, SLOT(handleAppearancePropertiesChanged(QString, QVariantMap, QStringList)));
-    QString backgroundPath;
-    if (QDBusConnection::sessionBus().interface()->isServiceRegistered(KIRAN_APPEARANCE_SERVICE))
-    {
-        loadBackground();
-    }
-    else
-    {
-        auto serviceWatcher = new QDBusServiceWatcher(KIRAN_APPEARANCE_SERVICE, QDBusConnection::sessionBus(), QDBusServiceWatcher::WatchForRegistration, this);
-        connect(serviceWatcher, &QDBusServiceWatcher::serviceRegistered, this, &ScreenManager::loadBackground);
-    }
+    connect(m_prefs, &Prefs::lockScreenBackgroundChanged, this, &ScreenManager::loadBackground);
+    loadBackground();
 
     QApplication::instance()->installEventFilter(this);
 
@@ -560,25 +546,14 @@ void ScreenManager::setBackgroundWindowBlured(Window *window)
 
 void ScreenManager::loadBackground()
 {
-    auto backgroundPath = m_appearanceInterface->lock_screen_background();
-    if (!m_background.load(backgroundPath))
+    auto bgPath = m_prefs->getLockScreenBackground();
+    if (!m_background.load(bgPath))
     {
-        KLOG_WARNING() << "can't load background," << backgroundPath;
+        KLOG_WARNING() << "can't load background," << bgPath;
     }
 
     for (auto window : m_windowMap.values())
     {
         window->setBackground(m_background);
-    }
-}
-
-void ScreenManager::handleAppearancePropertiesChanged(QString property, QVariantMap map, QStringList list)
-{
-    for (auto iter = map.begin(); iter != map.end(); iter++)
-    {
-        QString property = iter.key();
-        if (property != "lock_screen_background")
-            continue;
-        loadBackground();
     }
 }
