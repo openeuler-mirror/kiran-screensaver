@@ -16,6 +16,7 @@
 #include <QGSettings>
 #include <QMutex>
 #include <QScopedPointer>
+
 #define RETURN_IF_SAME(value_1, value_2)  \
     {                                     \
         if (value_1 == value_2)           \
@@ -43,6 +44,10 @@
 
 #define SCHEMA_KIRAN_POWER "com.kylinsec.kiran.power"
 #define KEY_ENABLE_DISPLAY_IDLE_DIMMED "enableDisplayIdleDimmed"
+
+#define SCHEMA_KIRAN_APPEARANCE "com.kylinsec.kiran.appearance"
+#define KEY_LOCK_SCREEN_BACKGROUND "lockScreenBackground"
+#define DEFAULT_LOCK_SCREEN_BACKGROUND "/usr/share/backgrounds/kiran/default.jpg"
 
 using namespace Kiran::ScreenSaver;
 
@@ -111,6 +116,18 @@ bool Prefs::init()
         }
     }
 
+    if (QGSettings::isSchemaInstalled(SCHEMA_KIRAN_APPEARANCE))
+    {
+        m_appearanceSettings = new QGSettings(SCHEMA_KIRAN_APPEARANCE, "", this);
+        connect(m_appearanceSettings, &QGSettings::changed, this, &Prefs::handleAppearanceGSettingsChanged);
+        m_lockScreenBackground = m_appearanceSettings->get(KEY_LOCK_SCREEN_BACKGROUND).toString();
+        KLOG_INFO() << "load kiran-appearance prefs: lock-screen-background" << m_lockScreenBackground;
+    }
+    else
+    {
+        m_lockScreenBackground = DEFAULT_LOCK_SCREEN_BACKGROUND;
+        KLOG_INFO() << "use default lock-screen-background" << m_lockScreenBackground;
+    }
 
     isInited = true;
     return true;
@@ -225,6 +242,16 @@ void Kiran::ScreenSaver::Prefs::handlePowerGSettingsChanged(const QString& key)
     }
 }
 
+void Prefs::handleAppearanceGSettingsChanged(const QString& key)
+{
+    if (key == KEY_LOCK_SCREEN_BACKGROUND)
+    {
+        m_lockScreenBackground = m_appearanceSettings->get(key).toString();
+        KLOG_INFO() << "settings changed:" << key << m_lockScreenBackground;
+        emit lockScreenBackgroundChanged(m_lockScreenBackground);
+    }
+}
+
 Prefs* Prefs::getInstance()
 {
     static QMutex mutex;
@@ -245,6 +272,11 @@ Prefs* Prefs::getInstance()
 QString Prefs::getLockerPluginPath() const
 {
     return m_lockerPluginPath;
+}
+
+QString Prefs::getLockScreenBackground() const
+{
+    return m_lockScreenBackground;
 }
 
 bool Kiran::ScreenSaver::Prefs::getEnableDisplayIdleDimmed() const
