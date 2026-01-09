@@ -2,29 +2,19 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="zh_CN">
 <context>
-    <name>KSScreensaver</name>
-    <message>
-        <source>Click to unlock</source>
-        <translation type="vanished">点击解锁</translation>
-    </message>
-</context>
-<context>
     <name>Kiran::ScreenSaver::ClassicalScreensaver</name>
     <message>
         <location filename="../src/screensaver/classical-screensaver.ui" line="14"/>
-        <location filename="../build/kiran-screensaver_autogen/include/ui_classical-screensaver.h" line="112"/>
         <source>ClassicalScreensaver</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../src/screensaver/classical-screensaver.ui" line="66"/>
-        <location filename="../build/kiran-screensaver_autogen/include/ui_classical-screensaver.h" line="113"/>
         <source>14:45</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../src/screensaver/classical-screensaver.ui" line="83"/>
-        <location filename="../build/kiran-screensaver_autogen/include/ui_classical-screensaver.h" line="114"/>
         <source>8月27日 星期五</source>
         <translation type="unfinished"></translation>
     </message>
@@ -40,17 +30,9 @@
     </message>
 </context>
 <context>
-    <name>Kiran::ScreenSaver::Screensaver</name>
-    <message>
-        <source>Click to unlock</source>
-        <translation type="obsolete">点击解锁</translation>
-    </message>
-</context>
-<context>
     <name>Kiran::ScreenSaver::XEmbedScreensaver</name>
     <message>
         <location filename="../src/screensaver/xembed-screensaver.ui" line="14"/>
-        <location filename="../build/kiran-screensaver_autogen/include/ui_xembed-screensaver.h" line="45"/>
         <source>Widget</source>
         <translation type="unfinished"></translation>
     </message>

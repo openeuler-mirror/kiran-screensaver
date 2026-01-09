@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 ~ 2021 KylinSec Co., Ltd.
+ * Copyright (c) 2020 ~ 2026 KylinSec Co., Ltd.
  * kiran-screensaver is licensed under Mulan PSL v2.
  * You can use this software according to the terms and conditions of the Mulan PSL v2.
  * You may obtain a copy of Mulan PSL v2 at:
@@ -9,18 +9,15 @@
  * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
  * See the Mulan PSL v2 for more details.
  *
- * Author:     liuxinhao <liuxinhao@kylinos.com.cn>
+ * Author:     liuxinhao <liuxinhao@kylinsec.com.cn>
  */
+#pragma once
+#include <QtGlobal>
 
-#include <qt5-log-i.h>
-#include <QApplication>
-#include "fade-test.h"
-
-int main(int argc,char* argv[])
+namespace TestUtils
 {
-    klog_qt5_init("","kylinsec-session","kiran-screensaver","fade-test");
-    QApplication app(argc,argv);
-    FadeTest fadeTest;
-    fadeTest.start();
-    return app.exec();
+// 初始化内存GSettings，用于单元测试
+// 注意：
+// 这个函数会设置GSETTINGS_BACKEND环境变量，使用内存后端，所以需要在使用前调用
+void initMemoryGSettings();
 }
