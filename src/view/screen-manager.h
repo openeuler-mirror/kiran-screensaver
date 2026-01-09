@@ -97,18 +97,16 @@ private:
     void destroyWindows();
 
     void setBackgroundWindowBlured(Window* window);
-    void loadBackground();
 
 private slots:
+    void loadBackground();
     void handleScreenAdded(QScreen* screen);
     void handleScreenRemoved(QScreen* screen);
     void handleWindowMouseEnter();
-    void handleAppearancePropertiesChanged(QString property, QVariantMap map, QStringList list);
 
 private:
     // kiran-screensaver配置项
     Prefs* m_prefs = nullptr;
-    KiranAppearance* m_appearanceInterface = nullptr;
 
     // 屏幕淡出接口实现
     Fade* m_fade = nullptr;

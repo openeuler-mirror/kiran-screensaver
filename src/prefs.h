@@ -43,19 +43,20 @@ public:
 public:
     bool getIdleActivationLock() const;
     bool getIdleActivationScreensaver() const;
-
     bool getCanLogout() const;
     bool getCanUserSwitch() const;
     bool getEnableAnimation() const;
+    bool getEnableDisplayIdleDimmed() const;
     QString getScreensaverTheme() const;
     QString getLockerPluginPath() const;
+    QString getLockScreenBackground() const;
 
-    bool getEnableDisplayIdleDimmed() const;
 signals:
     void idleActivationLockChanged();
     void idleActivationScrensaverChanged();
     void enableIdleDimmedChanged();
-    
+    void lockScreenBackgroundChanged(const QString& backgroundPath);
+
 private:
     void setIdleActivationLock(bool idleActivationLock);
     void setCanLogout(bool canLogout);
@@ -65,23 +66,23 @@ private:
 private slots:
     void handleGSettingsChanged(const QString& key);
     void handlePowerGSettingsChanged(const QString& key);
+    void handleAppearanceGSettingsChanged(const QString& key);
 
 private:
     bool isInited = false;
     QGSettings* m_screensaverSettings = nullptr;
-
+    QGSettings* m_powerSettings = nullptr;
+    QGSettings* m_appearanceSettings = nullptr;
     bool m_splitScreensaverAndLock = false;  // 是否拆分空闲锁定以及屏保配置
     bool m_idleActivationLock = true;        // 空闲时是否锁定/屏保
     bool m_idleActivationScreensaver = true; // 空闲时是否锁定
-
+    bool m_enableDisplayIdleDimmed = false;  // 空闲时是否启用屏幕变暗
     bool m_canLogout = false;        // 是否允许注销
     bool m_canUserSwitch = false;    // 是否允许用户.切换
     bool m_enableAnimation = false;  // 是否启用动画
     QString m_lockerPluginPath;      // 解锁框插件位置
     QString m_screensaverTheme;      // 屏保主题
-
-    QGSettings* m_powerSettings = nullptr;
-    bool m_enableDisplayIdleDimmed = false;
+    QString m_lockScreenBackground;  // 锁屏背景路径
 };
 }  // namespace ScreenSaver
 }  // namespace Kiran
