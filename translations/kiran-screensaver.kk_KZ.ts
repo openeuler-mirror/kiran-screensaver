@@ -1,58 +1,40 @@
-<?xml version="1.0" ?><!DOCTYPE TS><TS version="2.1" language="zh_CN">
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE TS>
+<TS version="2.1" language="zh_CN">
 <context>
-    <name>KSScreensaver</name>
+    <name>Kiran::ScreenSaver::ClassicalScreensaver</name>
     <message>
-        <location filename="../build/kiran-screensaver_autogen/include/ui_ks-screensaver.h" line="108"/>
-        <source>KSScreensaver</source>
-        <translation type="unfinished">KSCreensaver</translation>
+        <location filename="../src/screensaver/classical-screensaver.ui" line="14"/>
+        <source>ClassicalScreensaver</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../build/kiran-screensaver_autogen/include/ui_ks-screensaver.h" line="109"/>
+        <location filename="../src/screensaver/classical-screensaver.ui" line="66"/>
         <source>14:45</source>
         <translation type="unfinished">Он төрт қырық бес</translation>
     </message>
     <message>
-        <location filename="../build/kiran-screensaver_autogen/include/ui_ks-screensaver.h" line="110"/>
+        <location filename="../src/screensaver/classical-screensaver.ui" line="83"/>
         <source>8月27日 星期五</source>
         <translation type="unfinished">Жұма, 27 тамыз</translation>
     </message>
     <message>
-        <source>Click to unlock</source>
-        <translation type="vanished">Құлыптан босату үшін басыңыз</translation>
-    </message>
-</context>
-<context>
-    <name>Kiran::ScreenSave::Screensaver</name>
-    <message>
-        <location filename="../src/screensaver/screensaver.ui" line="14"/>
-        <location filename="../cmake-build-debug/kiran-screensaver_autogen/include/ui_screensaver.h" line="109"/>
-        <source>Screensaver</source>
-        <translation type="unfinished">Скриншотшы</translation>
-    </message>
-    <message>
-        <location filename="../src/screensaver/screensaver.ui" line="56"/>
-        <location filename="../cmake-build-debug/kiran-screensaver_autogen/include/ui_screensaver.h" line="110"/>
-        <source>14:45</source>
-        <translation type="unfinished">Он төрт қырық бес</translation>
-    </message>
-    <message>
-        <location filename="../src/screensaver/screensaver.ui" line="72"/>
-        <location filename="../cmake-build-debug/kiran-screensaver_autogen/include/ui_screensaver.h" line="111"/>
-        <source>8月27日 星期五</source>
-        <translation type="unfinished">Жұма, 27 тамыз</translation>
-    </message>
-</context>
-<context>
-    <name>Kiran::ScreenSaver::Screensaver</name>
-    <message>
-        <location filename="../src/screensaver/screensaver.cpp" line="94"/>
+        <location filename="../src/screensaver/classical-screensaver.cpp" line="42"/>
         <source>Click to unlock</source>
         <translation type="unfinished">Құлыптан босату үшін басыңыз</translation>
     </message>
     <message>
-        <location filename="../src/screensaver/screensaver.cpp" line="176"/>
+        <location filename="../src/screensaver/classical-screensaver.cpp" line="55"/>
         <source>MM-dd dddd</source>
         <translation type="unfinished">Мм-кдд д</translation>
+    </message>
+</context>
+<context>
+    <name>Kiran::ScreenSaver::XEmbedScreensaver</name>
+    <message>
+        <location filename="../src/screensaver/xembed-screensaver.ui" line="14"/>
+        <source>Widget</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -94,7 +76,7 @@
     </message>
     <message>
         <location filename="../tools/kiran-screensaver-command/main.cpp" line="104"/>
-        <source>call 'GetActive' failed,%1.</source>
+        <source>call &apos;GetActive&apos; failed,%1.</source>
         <translation type="unfinished">&quot;GetActive&quot; деп қоңырау шалу сәтсіз аяқталды,% 1.</translation>
     </message>
     <message>
@@ -114,7 +96,7 @@
     </message>
     <message>
         <location filename="../tools/kiran-screensaver-command/main.cpp" line="116"/>
-        <source>call 'GetInhibitors' failed,%1.</source>
+        <source>call &apos;GetInhibitors&apos; failed,%1.</source>
         <translation type="unfinished">&quot;GetInhibitors&quot; деп атау сәтсіз аяқталды,% 1.</translation>
     </message>
     <message>
@@ -129,7 +111,7 @@
     </message>
     <message>
         <location filename="../tools/kiran-screensaver-command/main.cpp" line="139"/>
-        <source>call 'GetActive' failed,%1</source>
+        <source>call &apos;GetActive&apos; failed,%1</source>
         <translation type="unfinished">&quot;GetActive&quot; деп қоңырау шалу сәтсіз аяқталды,% 1</translation>
     </message>
     <message>
@@ -139,7 +121,7 @@
     </message>
     <message>
         <location filename="../tools/kiran-screensaver-command/main.cpp" line="155"/>
-        <source>call 'GetActiveTime' failed,%1</source>
+        <source>call &apos;GetActiveTime&apos; failed,%1</source>
         <translation type="unfinished">&quot;GetActiveTime&quot; деп қоңырау шалу сәтсіз аяқталды,% 1</translation>
     </message>
     <message>

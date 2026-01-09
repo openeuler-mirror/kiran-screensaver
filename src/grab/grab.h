@@ -35,6 +35,8 @@ public:
 
 private:
     Grab();
+    Grab(Grab& other) = delete;
+    Grab& operator=(Grab& other) = delete;
 
 public:
     // 释放抓取
