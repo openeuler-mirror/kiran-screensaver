@@ -29,22 +29,12 @@ namespace ScreenSaver
 /**
  * NOTE:
  * 保证 kiran-screensaver 窗口被置顶
- * 1.在不存在混成器，XServer会发出VisibilityNotify事件通知窗口可见状态
- * 2.订阅MapNotify,ConfigureNotify,窗口堆叠有更改时，重新置顶
+ * 订阅 ConfigureNotify/MapNotify，在窗口堆叠有更改时，重新置顶
 */
 class VisibilityMonitor : public QObject
 {
     Q_OBJECT
 public:
-    enum VisibilityState
-    {
-        VISIBILITY_UNOBSCURED = 0,          // 完全可见
-        VISIBILITY_PARTIALLY_OBSCURED = 1,  // 部分可见
-        VISIBILITY_FULLY_OBSCURED = 2,      // 完全不可见
-        VISIBILITY_LAST = 3
-    };
-    Q_ENUM(VisibilityState);
-
     static VisibilityMonitor* instance();
     ~VisibilityMonitor() override;
 
@@ -52,7 +42,6 @@ public:
     void unmonitor(WId wid);
 
 signals:
-    void visibilityStateChanged(WId wid,VisibilityState state);
     void restackedNeedRaise();
 
 private:
@@ -62,7 +51,6 @@ private:
     void selectSubstructureNotify();
     void unselectSubstructureNotify();
     void handleXcbEvent();
-    void onVisibilityNotify(xcb_generic_event_t* event);
     void onMapNotify(xcb_generic_event_t* event);
     void onConfigureNotify(xcb_generic_event_t* event);
 
