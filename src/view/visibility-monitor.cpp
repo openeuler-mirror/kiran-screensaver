@@ -57,13 +57,7 @@ void VisibilityMonitor::monitor(WId wid)
 
     KLOG_INFO() << "visibility monitor:" << wid;
 
-    // 关闭混成时，XServer发出VisibilityNotify事件
-    // 直接订阅该事件用来监控窗口可见状态更高效
-    uint32_t valueList[] = {XCB_EVENT_MASK_VISIBILITY_CHANGE};
-    xcb_change_window_attributes(m_xcbConnection, wid, XCB_CW_EVENT_MASK, valueList);
-
-    // 订阅用来处理混成顺序的事件
-    // ConfigureNotify 以及 MapNotify
+    // 订阅用来处理混成顺序的事件: ConfigureNotify
     if (m_windows.isEmpty())
     {
         selectSubstructureNotify();
@@ -81,9 +75,6 @@ void VisibilityMonitor::unmonitor(WId wid)
 
     KLOG_INFO() << "visibility unmonitor:" << wid;
 
-    uint32_t valueList[] = {XCB_EVENT_MASK_NO_EVENT};
-    xcb_change_window_attributes(m_xcbConnection, wid, XCB_CW_EVENT_MASK, valueList);
-
     m_windows.remove(wid);
     if (m_windows.isEmpty())
     {
@@ -96,7 +87,6 @@ VisibilityMonitor::VisibilityMonitor(QObject* parent)
     : QObject(parent)
 {
     init();
-    xcb_connect(nullptr, nullptr);
 }
 
 void VisibilityMonitor::init()
@@ -105,11 +95,14 @@ void VisibilityMonitor::init()
         return;
 
     m_xcbConnection = xcb_connect(nullptr, nullptr);
-    if (xcb_connection_has_error(m_xcbConnection))
+    if (m_xcbConnection == nullptr || xcb_connection_has_error(m_xcbConnection))
     {
         KLOG_WARNING() << "visibility monitor xcb_connect failed";
-        xcb_disconnect(m_xcbConnection);
-        m_xcbConnection = nullptr;
+        if (m_xcbConnection != nullptr)
+        {
+            xcb_disconnect(m_xcbConnection);
+            m_xcbConnection = nullptr;
+        }
         return;
     }
 
@@ -149,7 +142,6 @@ void VisibilityMonitor::selectSubstructureNotify()
     }
 
     uint32_t values[] = {XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY};
-    // uint32_t values[] = {XCB_EVENT_MASK_VISIBILITY_CHANGE};
     xcb_change_window_attributes(m_xcbConnection, root,
                                  XCB_CW_EVENT_MASK, values);
 
@@ -187,9 +179,6 @@ void VisibilityMonitor::handleXcbEvent()
     {
         switch (event->response_type & ~0x80)
         {
-        case XCB_VISIBILITY_NOTIFY:
-            onVisibilityNotify(event);
-            break;
         case XCB_MAP_NOTIFY:
             onMapNotify(event);
             break;
@@ -207,23 +196,23 @@ void VisibilityMonitor::handleXcbEvent()
         xcb_flush(m_xcbConnection);
 }
 
-void VisibilityMonitor::onVisibilityNotify(xcb_generic_event_t* event)
+void VisibilityMonitor::onConfigureNotify(xcb_generic_event_t* event)
 {
-    xcb_visibility_notify_event_t* visibilityEvent = reinterpret_cast<xcb_visibility_notify_event_t*>(event);
-    uint8_t visibilityState = visibilityEvent->state;
+    xcb_configure_notify_event_t* configureEvent = reinterpret_cast<xcb_configure_notify_event_t*>(event);
+    const WId windowId = configureEvent->window;
+    const WId aboveSiblingId = configureEvent->above_sibling;
+    const bool windowInternal = isInternal(windowId);
 
-    if ((visibilityState >= VISIBILITY_UNOBSCURED) && (visibilityState < VISIBILITY_LAST))
+    if (windowInternal)
     {
-        VisibilityState eState = (VisibilityState)visibilityState;
-        KLOG_DEBUG() << "visibility state changed:"
-                    << visibilityEvent->window
-                    << "->" << eState;
-        emit visibilityStateChanged(visibilityEvent->window, eState);
+        return;
     }
-    else
-    {
-        KLOG_WARNING() << "unknow visibility state:" << visibilityEvent->window << visibilityState;
-    }
+
+    KLOG_DEBUG() << "VisibilityMonitor: ConfigureNotify"
+                 << "window:" << windowId
+                 << "aboveSibling:" << aboveSiblingId
+                 << "event:" << configureEvent->event;
+    emit restackedNeedRaise();
 }
 
 void VisibilityMonitor::onMapNotify(xcb_generic_event_t* event)
@@ -235,20 +224,9 @@ void VisibilityMonitor::onMapNotify(xcb_generic_event_t* event)
         return;
     }
 
-    KLOG_DEBUG() << "VisibilityMonitor: MapNotify" << mapEvent->window;
-    emit restackedNeedRaise();
-}
-
-void VisibilityMonitor::onConfigureNotify(xcb_generic_event_t* event)
-{
-    xcb_configure_notify_event_t* configureEvent = reinterpret_cast<xcb_configure_notify_event_t*>(event);
-
-    if (isInternal(configureEvent->window))
-    {
-        return;
-    }
-
-    KLOG_DEBUG() << "VisibilityMonitor: ConfigureNotify" << configureEvent->window;
+    KLOG_DEBUG() << "VisibilityMonitor: MapNotify"
+                 << "window:" << mapEvent->window
+                 << "event:" << mapEvent->event;
     emit restackedNeedRaise();
 }
 
