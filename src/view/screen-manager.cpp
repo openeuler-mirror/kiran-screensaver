@@ -57,26 +57,6 @@ ScreenManager::ScreenManager(Fade *fade,
                     iter->raiseDelay();
                 }
             });
-    connect(m_visibilityMonitor, &VisibilityMonitor::visibilityStateChanged,
-            [this](WId wid, VisibilityMonitor::VisibilityState state)
-            {
-                // 窗口完全可见，不关注
-                if (state == VisibilityMonitor::VISIBILITY_UNOBSCURED)
-                {
-                    return;
-                }
-
-                for (auto iter : m_windowMap)
-                {
-                    if ((iter->winId() == wid))
-                    {
-                        KLOG_INFO() << iter->objectName() << state << ",raise it.";
-                        // 延迟窗口的raise操作，避免段时间多次事件
-                        iter->raiseDelay();
-                        break;
-                    }
-                }
-            });
 }
 
 ScreenManager::~ScreenManager()
