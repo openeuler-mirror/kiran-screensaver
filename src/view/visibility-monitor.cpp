@@ -96,7 +96,6 @@ VisibilityMonitor::VisibilityMonitor(QObject* parent)
     : QObject(parent)
 {
     init();
-    xcb_connect(nullptr, nullptr);
 }
 
 void VisibilityMonitor::init()
