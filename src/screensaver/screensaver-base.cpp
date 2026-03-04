@@ -115,12 +115,12 @@ void ScreensaverBase::initStateMachine()
     auto inActiveAnimationGroup = new QParallelAnimationGroup(m_stateMachine);
     toInactiveTransition->addAnimation(inActiveAnimationGroup);
 
-    auto inActiveOpacityAnimation = new QPropertyAnimation(m_opacityEffect, "opacity");
+    auto inActiveOpacityAnimation = new QPropertyAnimation(m_opacityEffect, "opacity",this);
     inActiveOpacityAnimation->setDuration(SCREENSAVER_UP_SLIP_ANIMATION_DURATION_MS);
     inActiveOpacityAnimation->setEasingCurve(QEasingCurve::InCubic);
     inActiveAnimationGroup->addAnimation(inActiveOpacityAnimation);
 
-    auto inActiveGeometryAnimation = new QPropertyAnimation(this, "geometry");
+    auto inActiveGeometryAnimation = new QPropertyAnimation(this, "geometry",this);
     inActiveGeometryAnimation->setDuration(SCREENSAVER_UP_SLIP_ANIMATION_DURATION_MS);
     inActiveGeometryAnimation->setEasingCurve(QEasingCurve::InCubic);
     inActiveAnimationGroup->addAnimation(inActiveGeometryAnimation);
@@ -131,12 +131,12 @@ void ScreensaverBase::initStateMachine()
 
     auto toActiveTransition = m_unmaskState->addTransition(this, &ScreensaverBase::masking, m_maskState);
 
-    auto toActiveOpacityAnimation = new QPropertyAnimation(m_opacityEffect, "opacity");
+    auto toActiveOpacityAnimation = new QPropertyAnimation(m_opacityEffect, "opacity",this);
     toActiveOpacityAnimation->setDuration(SCREENSAVER_DOWN_SLIP_ANIMATION_DURATION_MS);
     toActiveOpacityAnimation->setEasingCurve(QEasingCurve::OutCubic);
     toActiveTransition->addAnimation(toActiveOpacityAnimation);
 
-    auto toActiveGeometryAnimation = new QPropertyAnimation(this, "geometry");
+    auto toActiveGeometryAnimation = new QPropertyAnimation(this, "geometry",this);
     toActiveGeometryAnimation->setDuration(SCREENSAVER_DOWN_SLIP_ANIMATION_DURATION_MS);
     toActiveGeometryAnimation->setEasingCurve(QEasingCurve::OutCubic);
     toActiveTransition->addAnimation(toActiveGeometryAnimation);
