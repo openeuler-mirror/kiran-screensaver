@@ -177,15 +177,15 @@ void FadeXrandr::cleanup()
     {
         if(iter.value()->r)
         {
-            delete iter.value()->r;
+            delete[] iter.value()->r;
         }
         if(iter.value()->g)
         {
-            delete iter.value()->g;
+            delete[] iter.value()->g;
         }
         if(iter.value()->b)
         {
-            delete iter.value()->b;
+            delete[] iter.value()->b;
         }
         delete iter.value();
         d_ptr->crtcGammInfo.erase(iter++);
