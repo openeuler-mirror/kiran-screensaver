@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
     int xsetProcess = QProcess::execute("xset", QStringList() << "s" << "0" << "0");
     KLOG_DEBUG() << "xset execute result:" << xsetProcess;
 
-    auto translator = new QTranslator;
+    auto translator = new QTranslator(&app);
     if (translator->load(QLocale(),
                          "kiran-screensaver",
                          ".",
