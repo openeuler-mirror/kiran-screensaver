@@ -15,6 +15,7 @@
 #include <qt5-log-i.h>
 #include <signal.h>
 #include <QDBusInterface>
+#include <QApplication>
 #include <QLoggingCategory>
 #include <QProcess>
 #include <QSignalSpy>
@@ -176,5 +177,7 @@ int main(int argc, char* argv[])
         }
     }
 
-    QTEST_MAIN_IMPL(Kiran::ScreenSaver::TestScreenSaver)
+    QApplication app(argc, argv);
+    Kiran::ScreenSaver::TestScreenSaver testScreenSaver;
+    return QTest::qExec(&testScreenSaver, argc, argv);
 }
