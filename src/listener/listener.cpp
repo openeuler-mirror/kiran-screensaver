@@ -22,7 +22,9 @@
 #include <QLoggingCategory>
 #include <QString>
 #include <QtGlobal>
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 10, 0))
 #include <QRandomGenerator>
+#endif
 
 #define NOT_SUPPORTED_METHOD                                            \
     {                                                                   \
@@ -248,11 +250,20 @@ quint64 Listener::generateCookie()
     quint64 cookie = 0;
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 10, 0))
-    cookie = QRandomGenerator::global()->bounded(1, INT_MAX);
+    // Keep compatibility with early QRandomGenerator APIs.
+    cookie = static_cast<quint64>(QRandomGenerator::global()->bounded(INT_MAX - 1) + 1);
 #else
-    time_t randomSeed = time(nullptr);
-    qsrand(randomSeed);
-    cookie = (quint64)qrand();
+    static bool seeded = false;
+    if (!seeded)
+    {
+        qsrand(static_cast<uint>(QDateTime::currentMSecsSinceEpoch() & 0xffffffff));
+        seeded = true;
+    }
+    cookie = static_cast<quint64>(qrand());
+    if (cookie == 0)
+    {
+        cookie = 1;
+    }
 #endif
 
     return cookie;
