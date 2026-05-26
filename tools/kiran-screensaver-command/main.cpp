@@ -59,7 +59,7 @@ int main(int argc, char* argv[])
 
     auto translator = new QTranslator;
     if( translator->load(QLocale(),
-                     "kiran-screensaver-command",
+                     "kiran-screensaver",
                      ".",
                      "/usr/share/kiran-screensaver/translations/",
                      ".qm") )
