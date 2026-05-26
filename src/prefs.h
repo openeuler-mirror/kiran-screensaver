@@ -15,6 +15,8 @@
 #define KIRAN_SCREENSAVER_SRC_PREFS_H_
 
 #include <QGSettings>
+#include <QSettings>
+#include <QFileSystemWatcher>
 #include <QObject>
 #include <QString>
 #include <QtGlobal>
@@ -62,6 +64,9 @@ private:
     void setCanLogout(bool canLogout);
     void setCanUserSwitch(bool canUserSwitch);
     void setEnableAnimation(bool enableAnimation);
+    void fillMissingFromIni();
+    void setupIniFileWatcher();
+    void handleIniFileChanged();
 
 private slots:
     void handleGSettingsChanged(const QString& key);
@@ -83,6 +88,10 @@ private:
     QString m_lockerPluginPath;      // 解锁框插件位置
     QString m_screensaverTheme;      // 屏保主题
     QString m_lockScreenBackground;  // 锁屏背景路径
+
+    // 用于低版本系统没有gsettings的场景，使用ini配置兜底
+    QSettings* m_screensaverSettingsIni = nullptr;
+    QFileSystemWatcher* m_iniFileWatcher = nullptr;
 };
 }  // namespace ScreenSaver
 }  // namespace Kiran
