@@ -10,3 +10,4 @@ configure_file(com.kylinsec.kiran.screensaver.gschema.xml.in ${CMAKE_BINARY_DIR}
 install(FILES kiran-screensaver.desktop DESTINATION ${XDG_AUTO_START_DIR})
 install(FILES kiran-screensaver DESTINATION /${CMAKE_INSTALL_SYSCONFDIR}/pam.d/)
 install(FILES ${CMAKE_BINARY_DIR}/com.kylinsec.kiran.screensaver.gschema.xml DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/glib-2.0/schemas/)
+install(FILES kiran-screensaver.ini DESTINATION /${CMAKE_INSTALL_SYSCONFDIR}/)
