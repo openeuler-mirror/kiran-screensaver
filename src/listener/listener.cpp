@@ -56,7 +56,11 @@ namespace ScreenSaver
 {
 QDebug operator<<(QDebug debug, const Listener::InhibitedEntry &entry)
 {
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 8, 0))
     QString sinceString = QDateTime::fromSecsSinceEpoch(entry.since).toString("yyyy-MM-dd HH:mm::ss");
+#else
+    QString sinceString = QDateTime::fromMSecsSinceEpoch(entry.since * 1000).toString("yyyy-MM-dd HH:mm::ss");
+#endif
     QString entryDesc = QString("application(%1),reason(%2),connection(%3),cookie(%4),foreign_cookie(%5),since(%6)")
                             .arg(entry.application)
                             .arg(entry.reason)
@@ -191,7 +195,11 @@ QStringList Listener::GetInhibitors()
 
     foreach (auto iter, m_inhibitedEntries)
     {
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 8, 0))
         QString since = QDateTime::fromSecsSinceEpoch(iter.since).toString(Qt::ISODate);
+#else
+        QString since = QDateTime::fromMSecsSinceEpoch(iter.since * 1000).toString(Qt::ISODate);
+#endif
         QString inhibitorEntry = R"(Application="%1"; Since="%2"; Reason="%3";)";
         inhibitorEntry = inhibitorEntry.arg(iter.application, since, iter.reason);
         ret << inhibitorEntry;
@@ -219,7 +227,11 @@ uint Listener::Inhibit(const QString &application_name, const QString &reason)
     entry.application = application_name;
     entry.reason = reason;
     entry.cookie = generateCookie();
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 8, 0))
     entry.since = QDateTime::currentDateTime().toSecsSinceEpoch();
+#else
+    entry.since = QDateTime::currentMSecsSinceEpoch() / 1000;
+#endif
 
     addInhibitEntry(entry);
     return entry.cookie;
