@@ -19,7 +19,7 @@ using namespace Kiran::ScreenSaver;
 InvisibleWindow::InvisibleWindow(QWidget *parent)
     :QWidget(parent)
 {
-    setWindowFlag(Qt::BypassWindowManagerHint);
+    setWindowFlags(windowFlags() | Qt::BypassWindowManagerHint);
     setGeometry(QRect(-100,-100,10,10));
 }
 
