@@ -13,12 +13,12 @@
  */
 #include "prefs.h"
 #include <qt5-log-i.h>
+#include <QFile>
 #include <QGSettings>
 #include <QMutex>
 #include <QScopedPointer>
-#include "config.h"
-#include <QFile>
 #include <QTimer>
+#include "config.h"
 
 #define RETURN_IF_SAME(value_1, value_2)  \
     {                                     \
@@ -161,7 +161,7 @@ void Prefs::fillMissingFromIni()
 
     if (!m_powerSettings)
     {
-        m_enableDisplayIdleDimmed = m_screensaverSettingsIni->value( KEY_ENABLE_DISPLAY_IDLE_DIMMED, false).toBool();
+        m_enableDisplayIdleDimmed = m_screensaverSettingsIni->value(KEY_ENABLE_DISPLAY_IDLE_DIMMED, false).toBool();
     }
 
     if (!m_appearanceSettings)
@@ -188,9 +188,9 @@ void Prefs::setupIniFileWatcher()
 
 void Prefs::handleIniFileChanged()
 {
-    
     // 延迟一下，等文件写完
-    QTimer::singleShot(500, this, [this]() {
+    QTimer::singleShot(500, this, [this]()
+                       {
         // 重新检查文件是否存在
         if (!QFile::exists(SCREENSAVER_CONFIG_FILE))
         {
@@ -240,8 +240,7 @@ void Prefs::handleIniFileChanged()
             QString oldBg = m_lockScreenBackground;
             m_lockScreenBackground = m_screensaverSettingsIni->value(KEY_LOCK_SCREEN_BACKGROUND, DEFAULT_LOCK_SCREEN_BACKGROUND).toString();
             if (m_lockScreenBackground != oldBg) emit lockScreenBackgroundChanged(m_lockScreenBackground);
-        }
-    });
+        } });
 }
 
 bool Prefs::getIdleActivationLock() const

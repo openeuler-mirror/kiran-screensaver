@@ -125,6 +125,30 @@ bool VisibilityMonitor::isInternal(WId window)
     return bRes;
 }
 
+bool VisibilityMonitor::shouldIgnoreExternalWindow(WId window)
+{
+    if (isInternal(window))
+    {
+        return true;
+    }
+
+    // 解锁框内 QToolTip / QMenu(Popup) 映射或改叠放序时会收到 MapNotify/ConfigureNotify。
+    // 若此时 raise 屏保窗口，会在约 100ms 内盖住悬浮提示，表现为提示一闪即逝。
+    QWidget* widget = QWidget::find(window);
+    if (widget == nullptr)
+    {
+        return false;
+    }
+
+    const Qt::WindowType windowType = widget->windowType();
+    if (windowType == Qt::ToolTip || windowType == Qt::Popup)
+    {
+        return true;
+    }
+
+    return false;
+}
+
 void VisibilityMonitor::selectSubstructureNotify()
 {
     WId root = QX11Info::appRootWindow();
@@ -201,9 +225,8 @@ void VisibilityMonitor::onConfigureNotify(xcb_generic_event_t* event)
     xcb_configure_notify_event_t* configureEvent = reinterpret_cast<xcb_configure_notify_event_t*>(event);
     const WId windowId = configureEvent->window;
     const WId aboveSiblingId = configureEvent->above_sibling;
-    const bool windowInternal = isInternal(windowId);
 
-    if (windowInternal)
+    if (shouldIgnoreExternalWindow(windowId))
     {
         return;
     }
@@ -219,7 +242,7 @@ void VisibilityMonitor::onMapNotify(xcb_generic_event_t* event)
 {
     xcb_map_notify_event_t* mapEvent = reinterpret_cast<xcb_map_notify_event_t*>(event);
 
-    if (isInternal(mapEvent->window))
+    if (shouldIgnoreExternalWindow(mapEvent->window))
     {
         return;
     }
