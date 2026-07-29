@@ -14,10 +14,10 @@
 #ifndef KIRAN_SCREENSAVER_SRC_PREFS_H_
 #define KIRAN_SCREENSAVER_SRC_PREFS_H_
 
-#include <QGSettings>
-#include <QSettings>
 #include <QFileSystemWatcher>
+#include <QGSettings>
 #include <QObject>
+#include <QSettings>
 #include <QString>
 #include <QtGlobal>
 #include "config.h"
@@ -78,16 +78,16 @@ private:
     QGSettings* m_screensaverSettings = nullptr;
     QGSettings* m_powerSettings = nullptr;
     QGSettings* m_appearanceSettings = nullptr;
-    bool m_splitScreensaverAndLock = false;  // 是否拆分空闲锁定以及屏保配置
-    bool m_idleActivationLock = true;        // 空闲时是否锁定/屏保
-    bool m_idleActivationScreensaver = true; // 空闲时是否锁定
-    bool m_enableDisplayIdleDimmed = false;  // 空闲时是否启用屏幕变暗
-    bool m_canLogout = false;        // 是否允许注销
-    bool m_canUserSwitch = false;    // 是否允许用户.切换
-    bool m_enableAnimation = false;  // 是否启用动画
-    QString m_lockerPluginPath;      // 解锁框插件位置
-    QString m_screensaverTheme;      // 屏保主题
-    QString m_lockScreenBackground;  // 锁屏背景路径
+    bool m_splitScreensaverAndLock = false;   // 是否拆分空闲锁定以及屏保配置
+    bool m_idleActivationLock = true;         // 空闲时是否锁定/屏保
+    bool m_idleActivationScreensaver = true;  // 空闲时是否锁定
+    bool m_enableDisplayIdleDimmed = false;   // 空闲时是否启用屏幕变暗
+    bool m_canLogout = false;                 // 是否允许注销
+    bool m_canUserSwitch = false;              // 是否允许用户切换
+    bool m_enableAnimation = false;           // 是否启用动画
+    QString m_lockerPluginPath;               // 解锁框插件位置
+    QString m_screensaverTheme;               // 屏保主题
+    QString m_lockScreenBackground;           // 锁屏背景路径
 
     // 用于低版本系统没有gsettings的场景，使用ini配置兜底
     QSettings* m_screensaverSettingsIni = nullptr;

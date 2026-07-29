@@ -12,12 +12,12 @@
  * Author:     liuxinhao <liuxinhao@kylinsec.com.cn>
  */
 #pragma once
+#include <xcb/xcb.h>
 #include <QObject>
+#include <QSet>
 #include <QSocketNotifier>
 #include <QWidget>
 #include <QX11Info>
-#include <QSet>
-#include <xcb/xcb.h>
 
 struct xcb_connection_t;
 struct xcb_ge_generic_event_t;
@@ -30,7 +30,9 @@ namespace ScreenSaver
  * NOTE:
  * 保证 kiran-screensaver 窗口被置顶
  * 订阅 ConfigureNotify/MapNotify，在窗口堆叠有更改时，重新置顶
-*/
+ * 例外：本进程的 Qt::ToolTip / Qt::Popup（如解锁框悬浮提示）映射时不置顶，
+ * 否则会立刻盖住提示窗口，表现为提示闪一下消失
+ */
 class VisibilityMonitor : public QObject
 {
     Q_OBJECT
@@ -48,6 +50,10 @@ private:
     explicit VisibilityMonitor(QObject* parent = nullptr);
     void init();
     bool isInternal(WId window);
+    /// @brief 是否应忽略该外部窗口的堆叠变化（避免盖住本进程的 ToolTip/Popup）
+    /// @param window X11 窗口 ID
+    /// @return true 表示不触发屏保窗口置顶
+    bool shouldIgnoreExternalWindow(WId window);
     void selectSubstructureNotify();
     void unselectSubstructureNotify();
     void handleXcbEvent();
