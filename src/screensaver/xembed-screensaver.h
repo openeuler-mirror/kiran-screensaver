@@ -37,6 +37,12 @@ public:
 
     static bool isSupported(const QString& name);
 
+    /// @brief 构造 xscreensaver hack 的启动参数(统一使用单横线形式)
+    /// @param screensaverName xscreensaver 主题名, 如 atlantis
+    /// @param windowId 嵌入的目标窗口 ID
+    /// @return 启动参数列表
+    static QStringList buildLaunchArgs(const QString& screensaverName, quint64 windowId);
+
 private:
     void init();
     static QString getEmbedProcessPath(const QString& themeName);
