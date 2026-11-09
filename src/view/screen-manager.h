@@ -43,7 +43,7 @@ public:
                   QObject* parent = nullptr);
     ~ScreenManager();
 
-    // 　初始化加载相关插件
+    // 　初始化加载相关插件，失败时返回 false 由调用者中止启动
     bool init();
 
     // 　提供接口给解锁框插件调用,传达解锁框认证成功的消息

@@ -55,7 +55,12 @@ bool Manager::init()
 
     // 屏幕管理类
     m_screenManager = new ScreenManager(m_fade);
-    m_screenManager->init();
+    if (!m_screenManager->init())
+    {
+        // 解锁框插件不可用则整个程序不具备锁屏能力，直接中止启动
+        KLOG_ERROR() << "screen manager init failed!";
+        return false;
+    }
 
     connect(m_screenManager, &ScreenManager::sigReqDeactivated, [this]()
             { m_listener->setActiveStatus(false); });

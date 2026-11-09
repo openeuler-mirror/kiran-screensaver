@@ -117,6 +117,13 @@ private:
     // 删除会话管理中的空闲抑制器
     void removeSessionInhibit(const InhibitedEntry &entry);
 
+    // 校验 D-Bus 调用者与当前进程是否为同一 UID
+    // 会话总线本身只在同 UID 内可达，此处作为兜底，防止总线策略被放宽后出现跨用户调用
+    bool isCallerTrusted() const;
+
+    // 校验失败时记录告警并回 AccessDenied；返回 true 表示已被拒绝
+    bool rejectUntrustedCaller(const QString &action);
+
     quint64 generateCookie();
 
 private slots:

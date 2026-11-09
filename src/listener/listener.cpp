@@ -18,12 +18,15 @@
 #include <qt5-log-i.h>
 #include <QDBusConnection>
 #include <QDBusConnectionInterface>
+#include <QDBusError>
 #include <QDateTime>
 #include <QLoggingCategory>
 #include <QString>
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 10, 0))
 #include <QRandomGenerator>
 #endif
+
+#include <unistd.h>
 
 #define NOT_SUPPORTED_METHOD                                            \
     {                                                                   \
@@ -181,6 +184,13 @@ void Listener::ShowMessage(const QString &summary, const QString &body, const QS
 void Listener::SetActive(bool value)
 {
     TRACE_CALLER(QString("set active to %1").arg(value))
+
+    // 激活（锁定）与取消激活（解锁）都属安全相关操作，统一校验调用者
+    if (rejectUntrustedCaller(value ? "SetActive(true)" : "SetActive(false)"))
+    {
+        return;
+    }
+
     setActiveStatus(value);
 }
 
@@ -260,12 +270,27 @@ void Listener::UnInhibit(uint cookie)
 void Listener::Lock()
 {
     TRACE_CALLER("lock screen")
+
+    // 锁定同属安全相关操作：跨用户强制锁屏可造成拒绝服务，同样需要校验
+    if (rejectUntrustedCaller("Lock"))
+    {
+        return;
+    }
+
     emit sigLock();
 }
 
 void Listener::Unlock()
 {
     TRACE_CALLER("unlock screen");
+
+    // 解锁必须来自本用户会话：会话总线仅保证同会话可达，
+    // 一旦总线策略被放宽（允许跨用户连接），此处兜底拒绝跨 UID 调用
+    if (rejectUntrustedCaller("Unlock"))
+    {
+        return;
+    }
+
     setActiveStatus(false);
 }
 
@@ -383,6 +408,47 @@ QString Kiran::ScreenSaver::Listener::callerInfo()
     }
 
     return callerDesc;
+}
+
+bool Listener::isCallerTrusted() const
+{
+    // 进程内部直接调用（非 D-Bus）一律放行
+    if (!calledFromDBus())
+    {
+        return true;
+    }
+
+    const uint selfUid = static_cast<uint>(getuid());
+
+    const auto connInterface = connection().interface();
+    if (connInterface == nullptr)
+    {
+        KLOG_WARNING(qLcListener) << "can't get dbus connection interface, self uid:" << selfUid;
+        return false;
+    }
+
+    const uint callerUid = connInterface->serviceUid(message().service()).value();
+    if (callerUid != selfUid)
+    {
+        KLOG_WARNING(qLcListener) << "caller uid:" << callerUid
+                                  << "differs from self uid:" << selfUid;
+        return false;
+    }
+
+    return true;
+}
+
+bool Listener::rejectUntrustedCaller(const QString &action)
+{
+    if (isCallerTrusted())
+    {
+        return false;
+    }
+
+    KLOG_WARNING(qLcListener).noquote() << "reject" << action << "from untrusted caller";
+    sendErrorReply(QDBusError::AccessDenied, "untrusted caller");
+
+    return true;
 }
 
 void Listener::addInhibitEntry(InhibitedEntry &entry)

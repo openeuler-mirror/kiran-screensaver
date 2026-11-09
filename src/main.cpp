@@ -60,6 +60,7 @@ int main(int argc, char *argv[])
     Kiran::ScreenSaver::Manager manager;
     if (!manager.init())
     {
+        // 此处退出早于 exec()，XSMP 尚未注册，会话管理不会按 AutoRestart 重拉
         KLOG_ERROR() << "kiran-screensaver init failed! exit.";
         return EXIT_FAILURE;
     }

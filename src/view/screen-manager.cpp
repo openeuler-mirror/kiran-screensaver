@@ -25,17 +25,84 @@
 
 #include <qt5-log-i.h>
 #include <QApplication>
+#include <QFile>
+#include <QFileInfo>
 #include <QGSettings>
 #include <QKeyEvent>
 #include <QPluginLoader>
 #include <QScreen>
 #include <QStateMachine>
 #include <QTimer>
+#include <sys/stat.h>
+
+#include "config.h"
 
 using namespace Kiran::ScreenSaver;
 
 #define KIRAN_APPEARANCE_SERVICE "com.kylinsec.Kiran.SessionDaemon.Appearance"
 #define KIRAN_APPEARANCE_PATH "/com/kylinsec/Kiran/SessionDaemon/Appearance"
+
+namespace
+{
+// 解锁框插件路径由用户可写的配置项提供，加载前必须校验，
+// 否则任意用户可执行文件都会被加载进锁屏进程
+bool isTrustedLockerPluginPath(const QString &path, QString *rejectReason)
+{
+    QFileInfo fileInfo(path);
+    if (!fileInfo.exists())
+    {
+        *rejectReason = "file not exist";
+        return false;
+    }
+
+    // 先解析符号链接再比对前缀，避免以软链接形式指向插件目录之外
+    const QString canonicalPath = fileInfo.canonicalFilePath();
+    if (canonicalPath.isEmpty())
+    {
+        *rejectReason = "can't resolve canonical path";
+        return false;
+    }
+
+    const QString pluginDir = QString(SCREENSAVER_PLUGIN_DIR) + "/";
+    if (!canonicalPath.startsWith(pluginDir))
+    {
+        *rejectReason = QString("not in plugin dir %1").arg(SCREENSAVER_PLUGIN_DIR);
+        return false;
+    }
+
+    struct stat fileStat;
+    if (::stat(QFile::encodeName(canonicalPath).constData(), &fileStat) != 0)
+    {
+        *rejectReason = "can't stat file";
+        return false;
+    }
+
+    if (!S_ISREG(fileStat.st_mode))
+    {
+        *rejectReason = "not a regular file";
+        return false;
+    }
+
+    if (fileStat.st_uid != 0)
+    {
+        *rejectReason = "not owned by root";
+        return false;
+    }
+
+    if (fileStat.st_mode & (S_IWGRP | S_IWOTH))
+    {
+        *rejectReason = "writable by group or others";
+        return false;
+    }
+
+    return true;
+}
+
+QString defaultLockerPluginPath()
+{
+    return QString(SCREENSAVER_PLUGIN_DIR) + "/libkiran-screensaver-dialog.so";
+}
+}  // namespace
 
 ScreenManager::ScreenManager(Fade *fade,
                              QObject *parent)
@@ -68,28 +135,50 @@ bool ScreenManager::init()
 {
     // 加载解锁框插件
     QString lockerPluginPath = Prefs::getInstance()->getLockerPluginPath();
+
+    // 拒绝不安全路径时回退默认插件，宁可恢复默认锁屏样式，也不加载不可信插件
+    QString rejectReason;
+    if (!isTrustedLockerPluginPath(lockerPluginPath, &rejectReason))
+    {
+        const QString fallbackPath = defaultLockerPluginPath();
+        KLOG_WARNING() << "refuse to load locker plugin from" << lockerPluginPath
+                       << ", reason:" << rejectReason
+                       << ", fallback to" << fallbackPath;
+        lockerPluginPath = fallbackPath;
+    }
+
     QPluginLoader pluginLoader(lockerPluginPath);
     if (!pluginLoader.load())
     {
         KLOG_ERROR() << "can't load plugin:" << pluginLoader.errorString();
         m_lockerPluginInterface = nullptr;
+        return false;
     }
-    else
+
+    KLOG_DEBUG() << "load" << pluginLoader.fileName() << "succeed!";
+
+    // 加载成功的 Qt 插件未必实现了解锁框接口，未判空会导致锁屏进程崩溃，
+    // 进程由会话管理拉起后处于空闲态、不会恢复锁屏，等同于锁屏失效
+    PluginInterface *pluginInterface = qobject_cast<PluginInterface *>(pluginLoader.instance());
+    if (pluginInterface == nullptr)
     {
-        KLOG_DEBUG() << "load" << pluginLoader.fileName() << "succeed!";
-        PluginInterface *pluginInterface = qobject_cast<PluginInterface *>(pluginLoader.instance());
-        // 传入kiran-screensaver提供相关接口进行插件初始化
-        int iRes = pluginInterface->init(this);
-        if (iRes != 0)
-        {
-            KLOG_ERROR() << "init kiran screensaver plugin failed!" << iRes;
-            pluginLoader.unload();
-        }
-        else
-        {
-            m_lockerPluginInterface = qobject_cast<PluginInterface *>(pluginLoader.instance());
-        }
+        KLOG_ERROR() << "plugin is not a kiran-screensaver locker plugin:" << pluginLoader.fileName();
+        pluginLoader.unload();
+        m_lockerPluginInterface = nullptr;
+        return false;
     }
+
+    // 传入kiran-screensaver提供相关接口进行插件初始化
+    int iRes = pluginInterface->init(this);
+    if (iRes != 0)
+    {
+        KLOG_ERROR() << "init kiran screensaver plugin failed!" << iRes;
+        pluginLoader.unload();
+        m_lockerPluginInterface = nullptr;
+        return false;
+    }
+
+    m_lockerPluginInterface = pluginInterface;
 
     return true;
 }
