@@ -149,7 +149,7 @@ int main(int argc, char* argv[])
     QLoggingCategory::setFilterRules("*.debug=false\n"
                                      "*.info=false\n"
                                      "*.warning=false\n"
-                                     "*.critical=false");
+                                     "*.critical=true");
 
     bool showHelp = false;
     for (int i = 1; i < argc; ++i)
