@@ -27,7 +27,7 @@ bool DBusSession::initDBusSession()
 
     QScopedPointer<DBusSession> process(new DBusSession());
     process->start("/usr/bin/dbus-daemon", QStringList() << "--print-address"
-                                                         << "--fork"
+                                                         << "--nofork"
                                                          << "--session",
                    QIODevice::ReadOnly);
     process->waitForStarted();
@@ -37,8 +37,23 @@ bool DBusSession::initDBusSession()
         return false;
     }
 
+    // dbus-daemon 会把地址作为一行写到 stdout，waitForReadyRead 一有数据就返回，
+    // 10s 只是异常情况下的上界
+    const int kAddressTimeoutMs = 10000;
+    QByteArray dbusAddress;
+    if (process->waitForReadyRead(kAddressTimeoutMs))
+    {
+        dbusAddress = process->readAllStandardOutput().trimmed();
+    }
+
+    if (dbusAddress.isEmpty())
+    {
+        qCritical() << "Failed to read dbus address";
+        // process 析构时会 kill 掉已启动的 dbus-daemon，避免遗留
+        return false;
+    }
+
     dbusSessionProcess = process.take();
-    auto dbusAddress = dbusSessionProcess->readAllStandardOutput().trimmed();
     qAddPostRoutine(+[]()
                     {
                         if (dbusSessionProcess)
